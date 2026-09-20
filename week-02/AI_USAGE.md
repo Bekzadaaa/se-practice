@@ -41,7 +41,7 @@ Writing your own text with an AI is permitted at Level D **Translating the concl
 - **Everything I submitted, I can explain and defend in class:** yes
 
 **Anything I accepted from the AI without fully understanding it:**
-<!-- some moments in prompt_d.py -->
+ some moments in prompt_d.py 
 
-Signed: <Sultan Bekzada>
+Signed: Sultan Bekzada
 Date: 20.09.2026
