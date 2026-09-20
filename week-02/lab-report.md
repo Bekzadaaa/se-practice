@@ -1,6 +1,6 @@
 # Lab report — Practice #02: The Prompt Is an Engineering Input
 
-**Name: Sulran Bekzada**
+**Name: Sultan Bekzada**
 **Group: Monday 16:00-19:00**
 **Date: 20.09.2026**
 
