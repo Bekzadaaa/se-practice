@@ -28,8 +28,8 @@ Fill the first three columns now; fill the last one after Task 3.
 
 | # | What I expect to go wrong | AC it concerns | Was I right? (after Task 3) |
 | --- | --- | --- | --- |
-| 1 | "Start is after the current time" will be coded as "start is not before now" (`start < now` rejected), so a request that starts exactly at the current time (T6, 09:00 with now 09:00) is wrongly Available. | AC1 | |
-| 2 | The page will not let me *supply* the test state: the current time will come from the real clock and/or "blocked" will be fixed in the sample data, so T3 or T6 cannot be set up on the selected room. | AC1, AC3 | |
+| 1 | "Start is after the current time" will be coded as "start is not before now" (`start < now` rejected), so a request that starts exactly at the current time (T6, 09:00 with now 09:00) is wrongly Available. | AC1 | Yes. `src/utils/availability.ts` rejects only `start < now`, so T6 (09:00–09:30, now 09:00) said Available. |
+| 2 | The page will not let me *supply* the test state: the current time will come from the real clock and/or "blocked" will be fixed in the sample data, so T3 or T6 cannot be set up on the selected room. | AC1, AC3 | Half right. "Blocked" is fixed in `src/data/rooms.ts` (only C-301), so T3 was Not testable. The current time is pre-filled from the real clock but editable, so T6 could be set up. |
 
 **The initial prompt exactly as I sent it** — the deck's prompt with AC1–AC6 pasted in place of
 `[paste AC1–AC6]`, nothing else changed:
@@ -96,15 +96,15 @@ no way to set up the case). Save each final run as `evidence/final-T<n>.png`.
 
 | # | Case | What you set up and request | Expected | AC | Result on v1 | Result on final | Final screenshot |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| T1 | Touching | 11:00–12:00 | Available | AC4 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T1.png |
-| T2 | Overlap | 10:30–11:30 | Unavailable | AC4 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T2.png |
-| T3 | Blocked | 11:00–12:00, room blocked | Unavailable | AC3 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T3.png |
-| T4 | Exactly 2 hours | 12:00–14:00 | Available | AC2 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T4.png |
-| T5 | Over 2 hours | 12:00–14:01 | Unavailable | AC2 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T5.png |
-| T6 | Starts now | 09:00–09:30 (current time 09:00) | Unavailable | AC1 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T6.png |
-| T7 | Reversed times | 12:00–11:00, and the page says why | Unavailable | AC1, AC6 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T7.png |
-| T8 | Same check twice | T1, then T1 again without reloading | Available | AC5 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T8.png |
-| T9 | Narrow screen | T1 at about 375 px wide | Available | AC6 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T9.png |
+| T1 | Touching | 11:00–12:00 | Available | AC4 | Available | Available / Unavailable / Not testable | final-T1.png |
+| T2 | Overlap | 10:30–11:30 | Unavailable | AC4 | Unavailable | Available / Unavailable / Not testable | final-T2.png |
+| T3 | Blocked | 11:00–12:00, room blocked | Unavailable | AC3 | Not testable | Available / Unavailable / Not testable | final-T3.png |
+| T4 | Exactly 2 hours | 12:00–14:00 | Available | AC2 | Available | Available / Unavailable / Not testable | final-T4.png |
+| T5 | Over 2 hours | 12:00–14:01 | Unavailable | AC2 | Unavailable | Available / Unavailable / Not testable | final-T5.png |
+| T6 | Starts now | 09:00–09:30 (current time 09:00) | Unavailable | AC1 | Available | Available / Unavailable / Not testable | final-T6.png |
+| T7 | Reversed times | 12:00–11:00, and the page says why | Unavailable | AC1, AC6 | Unavailable | Available / Unavailable / Not testable | final-T7.png |
+| T8 | Same check twice | T1, then T1 again without reloading | Available | AC5 | Available | Available / Unavailable / Not testable | final-T8.png |
+| T9 | Narrow screen | T1 at about 375 px wide | Available | AC6 | Available | Available / Unavailable / Not testable | final-T9.png |
 
 ---
 
@@ -117,8 +117,10 @@ log a justified cleanup that preserves behaviour. Save a screenshot of each as
 
 | # | Issue | Evidence: steps → expected → observed | Priority | Decision |
 | --- | --- | --- | --- | --- |
-| 1 | | | High / Medium / Low | Fix / Reject / Defer |
-| 2 | | | High / Medium / Low | Fix / Reject / Defer |
+| 1 | T6: a request that starts exactly at the current time is accepted (functional, AC1) | Room B-204, current time 09:00, 09:00–09:30, Check → expected **Unavailable** (AC1: start must be *after* the supplied current time) → observed **Available**. Cause: `checkAvailability` in `src/utils/availability.ts` rejects only `start < now`. Screenshot `issue-1.png`. | High | Fix |
+| 2 | T3: the selected room cannot be blocked, so AC3 cannot be checked on it (functional/testability, AC3) | Room B-204, current time 09:00, want "room blocked" + 11:00–12:00 → expected **Unavailable** → observed: there is no blocked control; `blocked` is hard-coded in `src/data/rooms.ts` and only C-301 is blocked, so the case is **Not testable**. Screenshot `issue-2.png` (B-204, no way to block it). | High | Fix |
+| 3 | Stale decision after editing the inputs (usability, AC5/AC6) | B-204, 09:00, check 11:00–12:00 → Available; then change Start to 10:30 without pressing Check → expected: the old decision disappears (it no longer describes the inputs) → observed: **Available** stays on screen next to 10:30–12:00, which actually overlaps 10:00–11:00. Screenshot `issue-3.png`. | Medium | Fix |
+| 4 | End of day (24:00) cannot be entered (functional gap, AC1 allows end ≤ 1440) | B-204, Start 23:00, type 24:00 in End → expected: a way to ask for 23:00–24:00 → observed: the time input refuses 24:00 (value becomes empty) and the browser blocks the submit. Screenshot `issue-4.png`. | Low | Fix |
 
 ---
 
