@@ -48,17 +48,36 @@ AC6: The page remains usable at desktop and narrow/mobile width and gives unders
 ## 3. Task 2 — prototype v1
 
 v1 export saved in `original/` and screenshot saved as `evidence/v1.png` **before** any cleanup
-prompt: yes / no
+prompt: yes
 
-**Bolt's list of the files/components it created, pasted unedited:**
+**Bolt's list of the files/components it created, pasted unedited:** (the fallback builder's
+answer, Claude claude-opus-5-5)
 
 ```text
-(paste here)
+I built a one-page Smart Campus Room Availability Checker (Vite + React + TypeScript, plain CSS, no backend or storage).
+
+Main files/components:
+- src/App.tsx — page layout and state (selected room, current time, start, end, result)
+- src/components/RoomSelector.tsx — room drop-down
+- src/components/AvailabilityForm.tsx — current time, start and end time inputs and the Check button
+- src/components/ResultPanel.tsx — Available / Unavailable decision with the reasons and conflicts
+- src/components/BookingList.tsx — the selected room's details and its existing bookings (read-only)
+- src/utils/availability.ts — checkAvailability(): the AC1–AC4 rules, returns available + reasons
+- src/utils/time.ts — HH:MM <-> minutes helpers and the current clock time
+- src/data/rooms.ts — four fictional rooms with sample bookings (one room blocked for maintenance)
+- src/types.ts — Room, Booking and AvailabilityResult types
+- src/index.css — responsive styles (two columns on desktop, one column under 720 px)
 ```
 
 **What v1 does — one line per thing that works, or visibly does not:**
 
--
+- Shows four fictional rooms in a drop-down; the selected room's bookings are listed read-only on the right.
+- Has a "Current time" input, but it is pre-filled from the real clock (`currentTimeString()` uses `new Date()`), so for every case I had to type 09:00 by hand first.
+- Start and End are `type="time"` inputs (HH:MM); there is no way to type 24:00.
+- "Blocked" is fixed in the sample data: only C-301 is blocked, and there is no control to block the selected room.
+- The decision is shown as a big Available / Unavailable with a list of reasons; checking does not write anything to the bookings.
+- No room has exactly one booking 10:00–11:00: B-204 has 10:00–11:00 and 15:00–16:00, so I used B-204 for the cases (no case reaches 15:00).
+- On a phone width the two columns stack into one.
 
 **Repair prompt** (only if the first build did not run — the deck allows one, then the result is
 v1). Leave empty if you did not need it:
