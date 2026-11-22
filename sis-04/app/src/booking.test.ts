@@ -40,11 +40,11 @@ describe('AC1 — 0 ≤ start < end ≤ 1440 and start after now', () => {
 });
 
 describe('AC2 — at most 120 minutes', () => {
-  test('T06 AC2: 720–840 is exactly 120 minutes → Available', () => {
+  test('T06 B1 AC2: 720–840 is exactly 120 minutes → Available', () => {
     expect(check(720, 840)).toBe(true);
   });
 
-  test('T07 AC2: 720–841 is 121 minutes → Unavailable', () => {
+  test('T07 B2 AC2: 720–841 is 121 minutes → Unavailable', () => {
     expect(check(720, 841)).toBe(false);
   });
 });
@@ -56,7 +56,7 @@ describe('AC3 — blocked room', () => {
 });
 
 describe('AC4 — overlaps rejected, touching allowed', () => {
-  test('T01 AC4: 660–720 touches the end of 600–660 → Available', () => {
+  test('T01 B3 AC4: 660–720 touches the end of 600–660 → Available', () => {
     expect(check(660, 720)).toBe(true);
   });
 
@@ -64,7 +64,7 @@ describe('AC4 — overlaps rejected, touching allowed', () => {
     expect(check(570, 600)).toBe(true);
   });
 
-  test('T09 AC4: 630–690 partially overlaps 600–660 → Unavailable', () => {
+  test('T09 B4 AC4: 630–690 partially overlaps 600–660 → Unavailable', () => {
     expect(check(630, 690)).toBe(false);
   });
 

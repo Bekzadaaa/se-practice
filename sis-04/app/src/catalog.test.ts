@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { filterRooms } from './filter';
+import { checkRoom, explainRoom } from './booking';
 import type { Room } from './rooms';
 
 // A fixed catalog for the tests only — never the page's ROOMS, so a change to the demo data
@@ -37,5 +38,64 @@ describe('filterRooms — F1 capacity, F2 equipment, F4 empty', () => {
 
   test('F4: nothing matches 50 attendees with computers — an empty list, not an error', () => {
     expect(filterRooms(catalog(), { attendees: 50, equipment: ['computers'] })).toEqual([]);
+  });
+});
+
+describe('checkRoom — the chosen room decides (F3, F5, AC5)', () => {
+  const at = (start: number, end: number) => ({ start, end, now: 540 });
+
+  test('F3 AC3: a blocked room is never available, even for a free slot (r4, 720–780)', () => {
+    expect(checkRoom(catalog(), 'r4', at(720, 780))).toBe(false);
+  });
+
+  test("F5: the same times use the chosen room's own bookings — r2 (booked 600–660) no, r3 yes", () => {
+    const rooms = catalog();
+    expect(checkRoom(rooms, 'r2', at(600, 660))).toBe(false);
+    expect(checkRoom(rooms, 'r3', at(600, 660))).toBe(true);
+  });
+
+  test('an unknown room id is not available', () => {
+    expect(checkRoom(catalog(), 'nope', at(720, 780))).toBe(false);
+  });
+
+  test('AC5: an Available checkRoom leaves the whole catalog unchanged', () => {
+    const rooms = catalog();
+    const before = JSON.stringify(rooms);
+    expect(checkRoom(rooms, 'r2', at(660, 720))).toBe(true);
+    expect(JSON.stringify(rooms)).toBe(before);
+  });
+
+  test('INT F1 F2 F3: filterRooms, then checkRoom on each room it returned', () => {
+    const rooms = catalog();
+    const matching = filterRooms(rooms, { attendees: 15, equipment: ['projector', 'whiteboard'] });
+    const results = matching.map((r) => [r.id, checkRoom(rooms, r.id, at(600, 660))]);
+    expect(results).toEqual([
+      ['r3', true],
+      ['r4', false],
+    ]);
+  });
+});
+
+describe('explainRoom — the reasons shown under the decision', () => {
+  test('F3: a blocked room says why', () => {
+    const r = explainRoom(catalog(), 'r4', { start: 720, end: 780, now: 540 });
+    expect(r.reasons).toContain('This room is blocked.');
+  });
+
+  test('AC1 AC4: an Unavailable decision always comes with a reason, on a grid of requests and an unparseable time', () => {
+    const rooms = catalog();
+    const silent: string[] = [];
+    const starts = [NaN, 480, 540, 570, 600, 630, 660, 700];
+    for (const id of ['r1', 'r2', 'r4']) {
+      for (const start of starts) {
+        for (const end of [NaN, 540, 600, 660, 690, 720, 780, 800]) {
+          const request = { start, end, now: 540 };
+          const available = checkRoom(rooms, id, request);
+          const explained = explainRoom(rooms, id, request).reasons.length === 0;
+          if (available !== explained) silent.push(id + ' ' + start + '-' + end);
+        }
+      }
+    }
+    expect(silent).toEqual([]);
   });
 });
