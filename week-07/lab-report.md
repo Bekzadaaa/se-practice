@@ -260,7 +260,16 @@ change and after restoring the correct code from section 7. Every test must pass
 is still open, leave its test failing and explain it in 9.1.
 
 ```text
-(paste here)
+$ npx vitest run
+
+ RUN  v3.2.7 /home/claude/se-practice/week-07/app
+
+ ✓ src/booking.test.ts (19 tests) 6ms
+
+ Test Files  1 passed (1)
+      Tests  19 passed (19)
+   Start at  18:46:43
+   Duration  220ms (transform 40ms, setup 0ms, collect 38ms, tests 6ms, environment 0ms, prepare 50ms)
 ```
 
 ---
@@ -273,18 +282,109 @@ error does not count as detection.
 
 | Trial | Intentional change | Detected / Survived | Failing test ID(s) | If it survived: why, and what you added |
 | --- | --- | --- | --- | --- |
-| M1 | Reject duration >= 120 instead of > 120 | Detected / Survived | | |
-| M2 | Treat touching endpoints as an overlap | Detected / Survived | | |
-| M3 | Remove the blocked-room rejection | Detected / Survived | | |
+| M1 | Reject duration >= 120 instead of > 120 | Detected | T06 | — (1 failed: exactly 120 min now rejected) |
+| M2 | Treat touching endpoints as an overlap | Detected | T01, T08, X2, AC5 | — (5 failed; also the "541–600" AC1 boundary test, which touches 600) |
+| M3 | Remove the blocked-room rejection | Detected | T13 | — (1 failed: blocked room now Available) |
 
 **The run of each mutant, pasted unedited.** Paste the `Tests` summary line and the failing test
-names at least:
+names at least: (each run is `npx vitest run`, filtered with grep to the RUN line, the per-test lines,
+the FAIL / AssertionError lines and the `Tests` line; nothing else was changed)
 
 ```text
-(paste here)
+--- M1: if (end - start >= MAX_DURATION) return false;
+ RUN  v3.2.7 /home/claude/se-practice/week-07/app
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T02 AC1: 540–570 starts exactly at the current time → Unavailable 1ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T03 AC1: 720–720 has zero duration → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T04 AC1: 750–720 is reversed → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T05 AC1: 1380–1441 ends after 24:00 → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > X1 AC1: 1380–1440 ends exactly at 24:00 → Available 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > AC1 boundary: 541–600 starts one minute after now → Available 0ms
+   × AC2 — at most 120 minutes > T06 AC2: 720–840 is exactly 120 minutes → Available 4ms
+   ✓ AC2 — at most 120 minutes > T07 AC2: 720–841 is 121 minutes → Unavailable 0ms
+   ✓ AC3 — blocked room > T13 AC3: 660–720 in a blocked room → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T01 AC4: 660–720 touches the end of 600–660 → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T08 AC4: 570–600 touches the start of 600–660 → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T09 AC4: 630–690 partially overlaps 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T10 AC4: 570–690 contains 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T11 AC4: 615–645 lies inside 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T12 AC4: 600–660 is identical to the booking → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T14 AC4: 630–690 with bookings = [] → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > X2 AC4: 660–720 touches 600–660 and 720–780 at once → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > AC4 boundary: 659–720 shares one minute (659) with 600–660 → Unavailable 0ms
+   ✓ AC5 — checking does not change the booking data > AC5: an Available check (660–720) leaves the bookings exactly as before 0ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/booking.test.ts > AC2 — at most 120 minutes > T06 AC2: 720–840 is exactly 120 minutes → Available
+AssertionError: expected false to be true // Object.is equality
+      Tests  1 failed | 18 passed (19)
 ```
 
-All three changes reverted, and the full suite run again (section 6.3): yes / no
+```text
+--- M2: if (bookings.some((b) => start <= b.end && end >= b.start)) return false;
+ RUN  v3.2.7 /home/claude/se-practice/week-07/app
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T02 AC1: 540–570 starts exactly at the current time → Unavailable 1ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T03 AC1: 720–720 has zero duration → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T04 AC1: 750–720 is reversed → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T05 AC1: 1380–1441 ends after 24:00 → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > X1 AC1: 1380–1440 ends exactly at 24:00 → Available 0ms
+   × AC1 — 0 ≤ start < end ≤ 1440 and start after now > AC1 boundary: 541–600 starts one minute after now → Available 5ms
+   ✓ AC2 — at most 120 minutes > T06 AC2: 720–840 is exactly 120 minutes → Available 0ms
+   ✓ AC2 — at most 120 minutes > T07 AC2: 720–841 is 121 minutes → Unavailable 0ms
+   ✓ AC3 — blocked room > T13 AC3: 660–720 in a blocked room → Unavailable 0ms
+   × AC4 — overlaps rejected, touching allowed > T01 AC4: 660–720 touches the end of 600–660 → Available 1ms
+   × AC4 — overlaps rejected, touching allowed > T08 AC4: 570–600 touches the start of 600–660 → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T09 AC4: 630–690 partially overlaps 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T10 AC4: 570–690 contains 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T11 AC4: 615–645 lies inside 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T12 AC4: 600–660 is identical to the booking → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T14 AC4: 630–690 with bookings = [] → Available 0ms
+   × AC4 — overlaps rejected, touching allowed > X2 AC4: 660–720 touches 600–660 and 720–780 at once → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > AC4 boundary: 659–720 shares one minute (659) with 600–660 → Unavailable 0ms
+   × AC5 — checking does not change the booking data > AC5: an Available check (660–720) leaves the bookings exactly as before 1ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/booking.test.ts > AC1 — 0 ≤ start < end ≤ 1440 and start after now > AC1 boundary: 541–600 starts one minute after now → Available
+AssertionError: expected false to be true // Object.is equality
+ FAIL  src/booking.test.ts > AC4 — overlaps rejected, touching allowed > T01 AC4: 660–720 touches the end of 600–660 → Available
+AssertionError: expected false to be true // Object.is equality
+ FAIL  src/booking.test.ts > AC4 — overlaps rejected, touching allowed > T08 AC4: 570–600 touches the start of 600–660 → Available
+AssertionError: expected false to be true // Object.is equality
+ FAIL  src/booking.test.ts > AC4 — overlaps rejected, touching allowed > X2 AC4: 660–720 touches 600–660 and 720–780 at once → Available
+AssertionError: expected false to be true // Object.is equality
+ FAIL  src/booking.test.ts > AC5 — checking does not change the booking data > AC5: an Available check (660–720) leaves the bookings exactly as before
+AssertionError: expected false to be true // Object.is equality
+      Tests  5 failed | 14 passed (19)
+```
+
+```text
+--- M3: the line `if (blocked) return false;` deleted
+ RUN  v3.2.7 /home/claude/se-practice/week-07/app
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T02 AC1: 540–570 starts exactly at the current time → Unavailable 1ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T03 AC1: 720–720 has zero duration → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T04 AC1: 750–720 is reversed → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T05 AC1: 1380–1441 ends after 24:00 → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > X1 AC1: 1380–1440 ends exactly at 24:00 → Available 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > AC1 boundary: 541–600 starts one minute after now → Available 0ms
+   ✓ AC2 — at most 120 minutes > T06 AC2: 720–840 is exactly 120 minutes → Available 0ms
+   ✓ AC2 — at most 120 minutes > T07 AC2: 720–841 is 121 minutes → Unavailable 0ms
+   × AC3 — blocked room > T13 AC3: 660–720 in a blocked room → Unavailable 6ms
+   ✓ AC4 — overlaps rejected, touching allowed > T01 AC4: 660–720 touches the end of 600–660 → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T08 AC4: 570–600 touches the start of 600–660 → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T09 AC4: 630–690 partially overlaps 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T10 AC4: 570–690 contains 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T11 AC4: 615–645 lies inside 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T12 AC4: 600–660 is identical to the booking → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T14 AC4: 630–690 with bookings = [] → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > X2 AC4: 660–720 touches 600–660 and 720–780 at once → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > AC4 boundary: 659–720 shares one minute (659) with 600–660 → Unavailable 0ms
+   ✓ AC5 — checking does not change the booking data > AC5: an Available check (660–720) leaves the bookings exactly as before 0ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/booking.test.ts > AC3 — blocked room > T13 AC3: 660–720 in a blocked room → Unavailable
+AssertionError: expected true to be false // Object.is equality
+      Tests  1 failed | 18 passed (19)
+```
+
+Each defect was restored with `git checkout -- src/booking.ts` before the next one.
+
+All three changes reverted, and the full suite run again (section 6.3): yes
 
 ---
 
@@ -296,11 +396,11 @@ screenshot of each as `evidence/ui-1.png` … `evidence/ui-5.png`. Take **ui-4 a
 
 | # | Action | Expected observation | AC | What I observed | Pass / Fail / Not testable |
 | --- | --- | --- | --- | --- | --- |
-| U1 | Check 11:00–12:00, unblocked | Available, with the fixed sample booking | AC5 | | Pass / Fail / Not testable |
-| U2 | Enable blocked, then check again | Unavailable replaces the earlier result | AC3, AC5 | | Pass / Fail / Not testable |
-| U3 | Clear a required input and submit | Understandable validation feedback | AC6 | | Pass / Fail / Not testable |
-| U4 | Use a narrow (phone) width | Controls and result remain usable | AC6 | | Pass / Fail / Not testable |
-| U5 | Repeat the checks on the same data | Existing bookings remain unchanged | AC5 | | Pass / Fail / Not testable |
+| U1 | Check 11:00–12:00, unblocked | Available, with the fixed sample booking | AC5 | Available; the list still shows 10:00–11:00 and 15:00–16:00 (B-204 sample data) | Pass |
+| U2 | Enable blocked, then check again | Unavailable replaces the earlier result | AC3, AC5 | Ticking "Room is blocked" cleared the old Available at once; after Check: Unavailable, reason "This room is blocked." | Pass |
+| U3 | Clear a required input and submit | Understandable validation feedback | AC6 | End cleared, Check pressed: no decision; the browser focuses End and shows "Please fill out this field."; the panel keeps "Choose a time and press Check availability" | Pass |
+| U4 | Use a narrow (phone) width | Controls and result remain usable | AC6 | At 375 px the columns stack, inputs are full width, no horizontal scroll (scrollWidth 375); 11:00–12:00 → Available | Pass |
+| U5 | Repeat the checks on the same data | Existing bookings remain unchanged | AC5 | Checked 11:00–12:00, 10:30–11:30, 11:00–12:00, 12:00–14:00 without reload: Available, Unavailable, Available, Available; bookings list unchanged | Pass |
 
 ---
 
@@ -312,17 +412,17 @@ Use the same IDs as `known_fails` in `submission.yml`. Write `none` if the run i
 
 | Check | Why it stays |
 | --- | --- |
-| | |
+| none | The last checker run is clean (33/33). |
 
 ### 9.2 Original and improved suites
 
 | Measure | First suite | Improved suite |
 | --- | --- | --- |
-| Executed / passed / failed | | |
-| Requirements with meaningful tests (AC IDs and gaps) | | |
-| Selected mutants detected | | |
-| Accepted / revised / rejected tests | | |
-| Remaining limitations | | |
+| Executed / passed / failed | 17 / 17 / 0 (14 `it` calls; `it.each` expands to 4) | 19 / 19 / 0 |
+| Requirements with meaningful tests (AC IDs and gaps) | AC1–AC5 covered; gaps: no "start one minute after now", no one-minute overlap; AC6 not unit-testable | AC1–AC5 with both extra boundaries; AC6 only by the manual checks in §8 |
+| Selected mutants detected | 3 of 3 (M1 1 failed, M2 4 failed, M3 1 failed — I ran them on the first suite too) | 3 of 3 (M1 1 failed, M2 5 failed, M3 1 failed) |
+| Accepted / revised / rejected tests | — | 13 accepted as written (T01–T08, T13, T14, X1, X2, AC5 values), 4 revised (T09–T12 split from `it.each`), fixture revised (shared array → fresh factory), 2 added, 0 rejected |
+| Remaining limitations | shared `bookings` array; overlap cases hidden in a table | only one booking shape per test; no test with several overlapping bookings or invalid input data; the page's minute conversion (`toMinutes`) and messages are untested |
 
 ### 9.3 What no AC decides
 
@@ -330,7 +430,11 @@ Call your function with `bookings = [{ start: 700, end: 650 }]` (a reversed exis
 and a request of 660–720. What does it return? Does any AC say what it should return? (This is
 the value you declare in `submission.yml` under `assumptions.invalid_existing_booking`.)
 
--
+- It returns **true** (I called it from a throw-away Vitest file: `PROBE true`). The overlap test
+  `start < b.end && end > b.start` becomes `660 < 650 && 720 > 700` = false, so the reversed booking
+  never counts as a conflict. No AC decides this: AC1 is about the *candidate* interval, and AC4
+  assumes existing bookings are real intervals. I think `true` is risky (a broken booking 650–700 entered
+  backwards would let someone book over it), but changing it would be a new rule, so I only declare it.
 
 ---
 
@@ -346,3 +450,15 @@ the value you declare in `submission.yml` under `assumptions.invalid_existing_bo
      pass, M1 would have become the real behaviour." -->
 
 <!-- Write your conclusion below this line -->
+
+The first suite had no wrong expectation, which I checked against §3 before running it, but it had
+a weakness that would hide a wrong canBook: every test shared one `bookings` array. If canBook pushed
+the accepted request into it, T09–T12 would then run against changed data and the result would depend
+on test order. I found it while reviewing before the first run and gave each test its own fixture.
+
+My final green run proves that canBook gives the planned answer for 19 inputs and that the three
+planted defects are caught: M2 alone failed five tests. It does not prove the page is right. Unit tests
+never touch `toMinutes` or the checkboxes; U3 and U4 were checked only by hand in the browser.
+
+A limitation remains: no test uses invalid existing data. A reversed booking {700, 650} returns true,
+and no AC says whether that is correct.
