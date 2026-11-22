@@ -17,7 +17,7 @@ grader find your answers by them. You can add rows to any table, but never remov
 | Exact model (with its version, or `not displayed`) | claude-opus-5-5 (Claude Opus 5.5) |
 | Where the assistant read the project (Bolt.new / Claude Code / Cursor / Copilot / chat with pasted files) | a Claude agent opened in `week-10/app/` as the project root, reading the files itself (like Claude Code in plan mode) |
 | Starting point (`week-08` or `week-07`) | week-08 |
-| Baseline commit — the checkpoint of Part 0 | a90fe73 (`week-10: baseline from week 08`) |
+| Baseline commit — the checkpoint of Part 0 | d5e1bc5 (`week-10: baseline from week 08`) |
 | Where I ran the tests (Bolt terminal / my computer / Codespace) | a Linux terminal (Node 22) in a Claude cloud workspace, same as a Codespace |
 | Vitest version (the `RUN  v…` line of a run) | 3.2.7 |
 
@@ -1056,7 +1056,7 @@ its files and its commands.
 
 | Rule | What I require |
 | --- | --- |
-| Isolation | its own branch off `main` (e.g. `agent/<task>`) in a separate worktree or clone; it never works on `main`, `week-10` or another student's branch, and it starts from a checkpoint commit like `a90fe73` |
+| Isolation | its own branch off `main` (e.g. `agent/<task>`) in a separate worktree or clone; it never works on `main`, `week-10` or another student's branch, and it starts from a checkpoint commit like `d5e1bc5` |
 | Permitted files | only `week-10/app/src/**` and new test files beside them; never `app/AGENTS.md`, the acceptance contract, `package.json` dependencies, `tests/`, `submission.yml` or anything outside `week-10/app/` |
 | Commands | `npm install` (from the existing package.json only), `npm test`, `npx vitest run`, `npm run build`, `git diff`, `git status`, `git commit` on its own branch; nothing else |
 | Prohibited actions | `git push` to `main`, `git reset --hard`, deleting or weakening tests, adding packages, any deploy (`netlify`, `vercel`, `--prod`), reading or sending `.env` or any secret, network calls or real KBTU data |
