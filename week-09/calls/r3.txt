@@ -1,0 +1,1 @@
+I can only check rooms for today, not tomorrow. Do you want to check a time today instead, and if so, what are the exact start and end times, the current time, whether the room is blocked, and what bookings it already has?
