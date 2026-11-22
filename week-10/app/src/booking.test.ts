@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { canBook } from './booking';
+import { checkAvailability } from './utils/availability';
 
 // Default fixture (plan, section 6): now = 540 (09:00), not blocked, one booking 600–660.
 // Every test builds its own request and its own bookings array: nothing is shared between tests.
@@ -113,5 +114,33 @@ describe('Week 08 regression tests', () => {
     const before = JSON.stringify(bookings);
     expect(canBook({ start: 720, end: 780, now: 540, blocked: false, bookings })).toBe(true);
     expect(JSON.stringify(bookings)).toBe(before);
+  });
+});
+
+describe('Week 10 regression tests', () => {
+  function room(bookings = defaultBookings()) {
+    return {
+      id: 'r', name: 'Test room', building: 'Test', capacity: 10, blocked: false,
+      bookings: bookings.map((b, i) => ({ id: 'b' + i, title: 'booking', ...b })),
+    };
+  }
+
+  test('R1 AC6: an Unavailable decision always comes with a reason — start NaN (an unparseable time)', () => {
+    const r = room();
+    expect(canBook({ start: NaN, end: 720, now: 540, blocked: false, bookings: r.bookings })).toBe(false);
+    expect(checkAvailability(r, NaN, 720, 540).reasons.length).toBeGreaterThan(0);
+  });
+
+  test('R1 AC1-AC4: the decision and the reasons agree on a grid of valid requests', () => {
+    const r = room();
+    const disagreements: string[] = [];
+    for (let start = 480; start <= 780; start += 30) {
+      for (let end = 480; end <= 960; end += 30) {
+        const decision = canBook({ start, end, now: 540, blocked: false, bookings: r.bookings });
+        const explained = checkAvailability(r, start, end, 540).reasons.length === 0;
+        if (decision !== explained) disagreements.push(start + '-' + end);
+      }
+    }
+    expect(disagreements).toEqual([]);
   });
 });

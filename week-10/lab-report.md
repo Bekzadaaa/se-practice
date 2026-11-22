@@ -647,23 +647,83 @@ index b786d88..1b91c62 100644
 
 ### 7.1 The regression test fails before the mitigation
 
-The risk it covers: **R?**. The real run, with the new test failing:
+The risk it covers: **R1**. The real run, with the new test failing:
 
 ```text
-(paste here)
+$ npx vitest run
+
+ RUN  v3.2.7 /home/claude/se-practice/week-10/app
+
+ ❯ src/booking.test.ts (23 tests | 1 failed) 10ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T02 AC1: 540–570 starts exactly at the current time → Unavailable 1ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T03 AC1: 720–720 has zero duration → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T04 AC1: 750–720 is reversed → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T05 AC1: 1380–1441 ends after 24:00 → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > X1 AC1: 1380–1440 ends exactly at 24:00 → Available 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > AC1 boundary: 541–600 starts one minute after now → Available 0ms
+   ✓ AC2 — at most 120 minutes > T06 AC2: 720–840 is exactly 120 minutes → Available 0ms
+   ✓ AC2 — at most 120 minutes > T07 AC2: 720–841 is 121 minutes → Unavailable 0ms
+   ✓ AC3 — blocked room > T13 AC3: 660–720 in a blocked room → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T01 AC4: 660–720 touches the end of 600–660 → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T08 AC4: 570–600 touches the start of 600–660 → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T09 AC4: 630–690 partially overlaps 600–660 → Unavailable 1ms
+   ✓ AC4 — overlaps rejected, touching allowed > T10 AC4: 570–690 contains 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T11 AC4: 615–645 lies inside 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T12 AC4: 600–660 is identical to the booking → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T14 AC4: 630–690 with bookings = [] → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > X2 AC4: 660–720 touches 600–660 and 720–780 at once → Available 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > AC4 boundary: 659–720 shares one minute (659) with 600–660 → Unavailable 0ms
+   ✓ AC5 — checking does not change the booking data > AC5: an Available check (660–720) leaves the bookings exactly as before 1ms
+   ✓ Week 08 regression tests > BUG-A AC4: 600–660 touches 540–600 and 660–720 on both sides → Available 0ms
+   ✓ Week 08 regression tests > BUG-B AC5: 720–780 touches nothing → Available, and the bookings are unchanged 0ms
+   × Week 10 regression tests > R1 AC6: an Unavailable decision always comes with a reason — start NaN (an unparseable time) 4ms
+     → expected 0 to be greater than 0
+   ✓ Week 10 regression tests > R1 AC1-AC4: the decision and the reasons agree on a grid of valid requests 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/booking.test.ts > Week 10 regression tests > R1 AC6: an Unavailable decision always comes with a reason — start NaN (an unparseable time)
+AssertionError: expected 0 to be greater than 0
+ ❯ src/booking.test.ts:131:64
+    129|     const r = room();
+    130|     expect(canBook({ start: NaN, end: 720, now: 540, blocked: false, b…
+    131|     expect(checkAvailability(r, NaN, 720, 540).reasons.length).toBeGre…
+       |                                                                ^
+    132|   });
+    133| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 22 passed (23)
+   Start at  19:56:28
+   Duration  287ms (transform 47ms, setup 0ms, collect 65ms, tests 10ms, environment 0ms, prepare 52ms)
 ```
+
+`R1 AC6` fails for the right reason: `canBook` says Unavailable (false) for start = NaN, and
+`checkAvailability` gives no reason (0), so the page would show a bare "Unavailable". The second R1
+test (decision and reasons agree on 187 valid requests) passes now; it is there so the refactor
+cannot change any valid decision.
 
 ### 7.2 The manual UI check
 
 | View | Width | What I checked | Result | Screenshot |
 | --- | --- | --- | --- | --- |
-| Desktop | | | | `evidence/ui-desktop.png` |
-| Mobile | | | | `evidence/ui-mobile.png` |
+| Desktop | 1280 px | B-204, current time 09:00, 11:00–12:00 → Check; two-column layout, labels, checkboxes, the result panel and the booking list visible and not overlapping | pass — "Available" in green, nothing cut off (page width 1280, no horizontal scroll) | `evidence/ui-desktop.png` |
+| Mobile | 375 px (phone, portrait, device emulation) | B-204, 09:00, 10:30–11:30 → Check; one column, full-width inputs, the reason and the conflict readable | pass — "Unavailable" with "The requested time overlaps an existing booking" and "Conflicts with: Study Group: Databases (10:00–11:00)"; no horizontal scroll (scrollWidth 375) | `evidence/ui-mobile.png` |
 
 ### 7.3 Tests and checks I did not run
 
 <!-- Name each one and why. "None" only if it is true. -->
--
+- `npm run lint`: there is no linter (§2.1, row 1b), so no lint was run.
+- No page or component test: nothing renders `App.tsx`; the UI was checked only by hand at two widths.
+  R8 (the "Room is blocked" checkbox overriding C-301) stays plausible because I did not test it.
+- No test on a real phone or in Safari/Firefox — only Chrome's device emulation. The NaN case of R1
+  is reachable only where a time input falls back to a text field (older browsers); I did not try one.
+- No `npm ci` from a lockfile (there is none, R7), so I did not check a clean reproducible install.
+- Scope question I did not resolve: the constraint says one fictional room, but `src/data/rooms.ts`
+  has four fictional rooms (the page checks one selected room at a time).
 
 ---
 
