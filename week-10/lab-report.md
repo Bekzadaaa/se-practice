@@ -951,38 +951,98 @@ $ npx tsc --noEmit && npx vitest run
 
 ### 8.2 The second mitigation
 
-**Risk:** R?
+**Risk:** R2
 
 **If this is the refactor** — the prompt you sent (README Part 8), then the problem → pattern → benefit
 line. Otherwise leave both empty.
 
+**Problem → pattern → benefit:** not the refactor — this mitigation is the approved `AGENTS.md` patch of Part 6.
+
+**What I rejected from the agent's patch, and why:** its decision to keep AC4 "word for word"
+(touching counts as an overlap) — that is R2 itself and contradicts the contract; its new
+"## You must not" heading and its two-line paragraphs — one bullet each keeps the headings and the
+patch at 10 lines; its narrowing of "Add packages" — not one of the six constraints (all in §6.2).
+
+The diff I approved (`git diff`), committed on its own as `week-10: AGENTS.md patch, approved`:
+
 ```text
-(the refactor prompt, if this is the refactor)
+$ git diff app/AGENTS.md
+diff --git a/week-10/app/AGENTS.md b/week-10/app/AGENTS.md
+index b786d88..1b91c62 100644
+--- a/week-10/app/AGENTS.md
++++ b/week-10/app/AGENTS.md
+@@ -9,30 +9,34 @@ A React + TypeScript page (Vite) that tells a student whether a campus room is f
+ requested time. The booking rule lives in `src/booking.ts` (`canBook`); the page is `src/App.tsx`;
+ the tests are in `src/booking.test.ts`.
+ 
+-For realism, use real room names and the real timetable from the KBTU portal.
++Scope: exactly one fictional room with made-up sample bookings; never use real room names, the real KBTU timetable or any data from the KBTU portal.
+ 
+ ## Acceptance contract
+ 
+ - AC1 Reject start ≥ end and requests in the past.
+ - AC2 Enforce the maximum allowed duration (120 minutes).
+ - AC3 Reject a blocked room.
+-- AC4 Reject overlaps. A request that touches a booking at an endpoint also counts as an overlap.
++- AC4 Reject overlaps; allow bookings that only touch at endpoints.
+ - AC5 Return Available / Unavailable without changing booking data.
++- AC6 Preserve clear UI feedback on desktop and mobile.
++- AC1–AC6 are fixed: never change them or weaken their tests to make a change pass.
+ 
+ ## Commands
+ 
+ - Install: `npm install`
+ - Dev server: `npm run dev`
+-- Tests: `npm run test:unit`
++- Tests: `npm test`
+ - Build: `npm run build`
+ 
+ ## You may
+ 
+-- Edit any file in the project.
++- Edit files inside this project only; never edit the acceptance contract above.
+ - Add packages when a task needs them.
+-- If bookings need to persist, add a small Supabase table and a login page.
++- Never add a login, accounts, a database or any backend (no Supabase); bookings stay in-memory sample data.
++- Never add, commit or print secrets: no API keys, tokens, passwords or `.env` values.
+ 
+ ## Before you finish
+ 
+ - Make sure the page still loads.
+-- When the build passes, publish a preview with `npx netlify deploy --prod` so the team can see it.
++- Run `npm test` before you propose a change as done; all tests must pass, and report the output.
++- Never deploy or publish anywhere (no Netlify, no --prod); a person reviews the pull request.
 ```
 
-**Problem → pattern → benefit:**
-
-**What I rejected from the agent's patch, and why:**
-
-The diff I approved (`git diff`):
-
-```text
-(paste here)
-```
+The same patch also closes R3 (deploy line), R4 (test command), R5 (real data) and R6
+(Supabase/login); their residual scores are in 8.3.
 
 ### 8.3 The residual risk
 
 | ID | L before | I before | Score before | L after | I after | Score after | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| | | | | | | | |
-| | | | | | | | |
+| R1 | 3 | 2 | 6 | 1 | 2 | 2 | the rules exist once (`evaluateBooking`); `R1 AC6` and the 187-request grid test pass; impact unchanged — a wrong reason would still confuse a user |
+| R2 | 3 | 3 | 9 | 1 | 3 | 3 | AC4 in `app/AGENTS.md` now says touching is allowed (checker C3); an agent could still ignore the file, so L 1 not 0; impact unchanged |
+| R3 | 3 | 3 | 9 | 1 | 3 | 3 | the deploy line is replaced by "Never deploy or publish anywhere" (C5); a human could still deploy by hand |
+| R4 | 3 | 2 | 6 | 1 | 2 | 2 | the file names `npm test`, which exists and passes (A3, §8.4) |
+| R5 | 2 | 3 | 6 | 1 | 3 | 3 | "exactly one fictional room … never use real room names" (C1) |
+| R6 | 2 | 2 | 4 | 1 | 2 | 2 | "Never add a login, accounts, a database or any backend" (C2) |
 
 ### 8.4 The final run
 
 The real output of the **full** suite after both mitigations. Every test must pass.
 
 ```text
-(paste here)
+$ npx vitest run
+
+ RUN  v3.2.7 /home/claude/se-practice/week-10/app
+
+ ✓ src/booking.test.ts (23 tests) 6ms
+
+ Test Files  1 passed (1)
+      Tests  23 passed (23)
+   Start at  20:00:25
+   Duration  306ms (transform 67ms, setup 0ms, collect 73ms, tests 6ms, environment 0ms, prepare 64ms)
 ```
 
 ---
@@ -996,12 +1056,12 @@ its files and its commands.
 
 | Rule | What I require |
 | --- | --- |
-| Isolation | |
-| Permitted files | |
-| Commands | |
-| Prohibited actions | |
-| Required evidence | |
-| Before merging or deploying | |
+| Isolation | its own branch off `main` (e.g. `agent/<task>`) in a separate worktree or clone; it never works on `main`, `week-10` or another student's branch, and it starts from a checkpoint commit like `a90fe73` |
+| Permitted files | only `week-10/app/src/**` and new test files beside them; never `app/AGENTS.md`, the acceptance contract, `package.json` dependencies, `tests/`, `submission.yml` or anything outside `week-10/app/` |
+| Commands | `npm install` (from the existing package.json only), `npm test`, `npx vitest run`, `npm run build`, `git diff`, `git status`, `git commit` on its own branch; nothing else |
+| Prohibited actions | `git push` to `main`, `git reset --hard`, deleting or weakening tests, adding packages, any deploy (`netlify`, `vercel`, `--prod`), reading or sending `.env` or any secret, network calls or real KBTU data |
+| Required evidence | the full `git diff`, the pasted `npx vitest run` output with the test count, the `npm run build` result, the risk IDs it touched and a short review note saying what it did NOT run |
+| Before merging or deploying | I re-run `npm test` and `npm run build` myself, read every line of the diff, check AC1–AC6 still hold (T01–T14, BUG-A, BUG-B, R1 green) and approve the PR by hand; no deploy at all for this project |
 
 ### 9.2 Optional — the deck's checklist prompt (not graded)
 
@@ -1013,13 +1073,13 @@ Use the same IDs as `known_fails` in `submission.yml`. Write `none` if the run i
 
 | Check | Why it stays |
 | --- | --- |
-| | |
+| none | The last checker run is clean (31/31). |
 
 ---
 
 ## 10. Release decision and conclusion
 
-**Decision:** GO / CONDITIONAL / NO-GO
+**Decision:** CONDITIONAL
 
 <!-- Keep one word above. GO is not allowed while any confirmed risk still scores 6 or more.
      Then 80-150 words, in your own words, without the assistant: why this decision, from the
@@ -1031,3 +1091,11 @@ Use the same IDs as `known_fails` in `submission.yml`. Write `none` if the run i
      but no test covers App.tsx, so a regression there would be invisible." -->
 
 <!-- Write your conclusion below this line -->
+
+CONDITIONAL. The two risks I ranked highest are closed on paper and checked: R2 (the inverted AC4 in
+AGENTS.md, 9) and R3 (the production deploy line, 9) now score 3 after the approved patch, and C3 and
+C5 confirm the wording. R1, the duplicated rules, is fixed by the refactor and its regression test,
+so no confirmed risk still scores 6 or more. I would not say GO, because the project is readiness
+Level 0: no linter, no CI, no lockfile (R7, 4), and nothing tests the page itself, so R8 (the blocked
+checkbox) is still only plausible. The condition is that I own R7 and R8 and that every agent change
+goes through the six rules in 9.1 with a human review.
