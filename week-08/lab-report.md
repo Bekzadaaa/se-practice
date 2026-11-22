@@ -920,12 +920,16 @@ Use the same IDs as `known_fails` in `submission.yml`. Write `none` if the run i
 
 | Check | Why it stays |
 | --- | --- |
-| | |
+| none | The last checker run is clean (31/31). |
 
 ### 9.2 One limitation of AI-assisted debugging
 
 <!-- Use something that actually happened in sections 5-8. 20 words or more. -->
--
+- Both assistants wrote a regression test for BUG-B and claimed it fails on the given code, and
+  both claims were wrong when I ran them: the skill answer's AC5 test passes on the buggy code and the
+  no-skill one fails on the first call, because BUG-A rejects 660–720 before the push is ever reached.
+  An assistant that cannot run the code predicts test results it has not seen, so its "this test
+  fails now" is a hypothesis until a real run confirms it.
 
 ---
 
@@ -940,3 +944,11 @@ Use the same IDs as `known_fails` in `submission.yml`. Write `none` if the run i
      visible after the BUG-A patch: the AC5 test had been failing for the wrong reason." -->
 
 <!-- Write your conclusion below this line -->
+
+The skill did not change the diagnosis: both answers found BUG-A in the `<=`/`>=` comparison and
+BUG-B in `bookings.push`. It changed the shape: the skill answer kept hypotheses apart (step 4) and
+ended with the defect table (step 7), which made it easier to check. It did not make the tests
+better: its AC5 test passed on the buggy code. What my tests proved is narrow: the `BUG-A` test shows
+touching on both sides is Available, and the `BUG-B` test shows a request that touches nothing leaves
+the array unchanged. The Week 07 AC5 test failed for the wrong reason until BUG-A was fixed. The tests
+do not prove the page is right; `App.tsx` was only checked by reading.
