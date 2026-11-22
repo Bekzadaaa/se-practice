@@ -1,9 +1,43 @@
 {
-  "name": "",
-  "description": "",
+  "name": "check_room",
+  "description": "Checks whether one campus room is available for a requested time interval today. All times are whole minutes since midnight, from 0 to 1440 (for example 10:00 = 600, 24:00 = 1440). The interval includes start and excludes end. Returns Available or Unavailable. It only checks: it does not save, create or change any booking.",
   "inputSchema": {
     "type": "object",
-    "properties": {},
-    "required": []
+    "properties": {
+      "start": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1440,
+        "description": "Requested start, minutes since midnight."
+      },
+      "end": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1440,
+        "description": "Requested end, minutes since midnight. 1440 means 24:00."
+      },
+      "now": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1440,
+        "description": "The current time, minutes since midnight."
+      },
+      "blocked": {
+        "type": "boolean",
+        "description": "true if the room is blocked."
+      },
+      "bookings": {
+        "type": "array",
+        "description": "The room's existing bookings today. May be empty.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "start": { "type": "integer", "minimum": 0, "maximum": 1440 },
+            "end": { "type": "integer", "minimum": 0, "maximum": 1440 }
+          }
+        }
+      }
+    },
+    "required": ["start", "end", "now", "blocked", "bookings"]
   }
 }

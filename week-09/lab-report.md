@@ -3,9 +3,9 @@
 Fill in every section. Do not delete or renumber the headings: the README and the checker point at
 them. Replace every `<!-- comment -->` with your own text (comments are ignored by the checker).
 
-**Name:**
-**Student ID:**
-**GitHub:**
+**Name:** Sultan Bekzada
+**Student ID:** 24B032035
+**GitHub:** Bekzadaaa
 
 ---
 
@@ -13,10 +13,10 @@ them. Replace every `<!-- comment -->` with your own text (comments are ignored 
 
 | | |
 | --- | --- |
-| Assistant (frozen for the whole lab) | |
-| Exact model (or "not displayed") | |
-| Three fresh chats for R1, R2, R3? (yes / no) | |
-| Python version (`python --version`) | |
+| Assistant (frozen for the whole lab) | Claude (Anthropic), each request in a separate fresh session that saw only the prompt |
+| Exact model (or "not displayed") | claude-opus-5-5 (Claude Opus 5.5) |
+| Three fresh chats for R1, R2, R3? (yes / no) | yes — three separate sessions, none of which saw this conversation or each other |
+| Python version (`python --version`) | Python 3.13.18 |
 
 ## 2. Your tool definition — a reason for every constraint
 
@@ -39,18 +39,18 @@ say what you changed.
 
 | Case | First run | Final run | What you changed |
 | --- | --- | --- | --- |
-| S01 | | | |
-| S02 | | | |
-| S03 | | | |
-| S04 | | | |
-| S05 | | | |
-| S06 | | | |
-| S07 | | | |
-| S08 | | | |
-| S09 | | | |
-| S10 | | | |
-| S11 | | | |
-| S12 | | | |
+| S01 | PASS | | |
+| S02 | PASS | | |
+| S03 | PASS | | |
+| S04 | PASS | | |
+| S05 | FAIL | | |
+| S06 | PASS | | |
+| S07 | PASS | | |
+| S08 | FAIL | | |
+| S09 | PASS | | |
+| S10 | PASS | | |
+| S11 | PASS | | |
+| S12 | PASS | | |
 
 ## 4. Function calling — what the model wrote
 
