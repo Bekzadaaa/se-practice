@@ -385,16 +385,23 @@ One row per defect. At least **BUG-A and BUG-B**. "Suspected cause" is your hypo
 
 | Check | yes / no |
 | --- | --- |
-| The file is plain UTF-8 text, named exactly `SKILL.md` (not `SKILL.md.txt`) | yes / no |
-| The first and the closing YAML delimiter are exactly three hyphens: `---` | yes / no |
-| `name` is lowercase with hyphens, and `description` says WHEN to use it | yes / no |
-| I read the whole file once: no passwords, API keys or private student data | yes / no |
+| The file is plain UTF-8 text, named exactly `SKILL.md` (not `SKILL.md.txt`) | yes |
+| The first and the closing YAML delimiter are exactly three hyphens: `---` | yes |
+| `name` is lowercase with hyphens, and `description` says WHEN to use it | yes |
+| I read the whole file once: no passwords, API keys or private student data | yes |
 
 **The contents of `skills/bug-detector.zip`.** Paste the listing (Windows: open the ZIP and copy
 the paths; macOS/Linux: `unzip -l skills/bug-detector.zip`):
 
 ```text
-(paste here)
+$ cd skills && zip -r bug-detector.zip bug-detector && unzip -l bug-detector.zip
+Archive:  bug-detector.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+        0  2026-11-22 19:42   bug-detector/
+      570  2026-11-22 19:42   bug-detector/SKILL.md
+---------                     -------
+      570                     2 files
 ```
 
 **Installation.** Where you uploaded it, what the upload said, and whether a new chat showed the
@@ -402,6 +409,15 @@ skill as enabled. If upload was not available, write `prompt-only simulation` an
 Screenshot of the result: `evidence/install.png`.
 
 <!-- Write below this line -->
+
+prompt-only simulation. I had no Skills upload available in the environment I worked in, so I used
+the deck's fallback: a fresh Claude session (claude-opus-5-5, no tools, no files) received the text
+of `SKILL.md` as its first message, introduced as "a prompt-only simulation of an Agent Skill, not
+an installed skill", and the skill question with the input as its second message. Nothing was
+uploaded, so there was no upload message and no "skill enabled" badge. `evidence/install.png` is a
+capture of that simulation, rendered from the saved session (not a screenshot of a chat app). The
+checker's K1–K7 all pass: the file is ASCII/UTF-8, named exactly `SKILL.md`, and the ZIP holds
+`bug-detector/SKILL.md` identical to the committed file.
 
 ---
 
