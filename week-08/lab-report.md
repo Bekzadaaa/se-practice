@@ -862,7 +862,7 @@ Received: "[{"start":600,"end":660},{"start":720,"end":780}]"
 ```
 
 BUG-A is fixed: the `BUG-A` test, T01, T08, X2 and the 541–600 boundary pass, and T09–T12 (real
-overlaps) still fail as they must not, i.e. they still pass as rejections. The two remaining failures
+overlaps) still pass, so real overlaps are still rejected. The two remaining failures
 are BUG-B: the Week 07 AC5 test now reaches the push and fails on the data, the right reason.
 
 ### 8.2 The BUG-B patch and the final run
@@ -870,8 +870,45 @@ are BUG-B: the Week 07 AC5 test now reaches the push and fails on the data, the 
 The change as a diff, then the real output of the **full** suite. Every test must pass.
 
 ```text
-(paste here)
+$ git diff app/src/booking.ts
+diff --git a/week-08/app/src/booking.ts b/week-08/app/src/booking.ts
+index 455ce74..7ca8ab0 100644
+--- a/week-08/app/src/booking.ts
++++ b/week-08/app/src/booking.ts
+@@ -28,7 +28,5 @@ export function canBook({ start, end, now, blocked, bookings }: {
+   for (const b of bookings) {
+     if (start < b.end && end > b.start) return false;
+   }
+-  // keep the room's list current with the slot that was just found free
+-  bookings.push({ start, end });
+   return true;
+ }
+
+$ npx vitest run -t "BUG-B"     (then)     $ npx vitest run
+
+ RUN  v3.2.7 /home/claude/se-practice/week-08/app
+
+ ✓ src/booking.test.ts (21 tests | 20 skipped) 2ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 20 skipped (21)
+   Start at  19:45:14
+   Duration  206ms (transform 41ms, setup 0ms, collect 40ms, tests 2ms, environment 0ms, prepare 45ms)
+
+
+
+ RUN  v3.2.7 /home/claude/se-practice/week-08/app
+
+ ✓ src/booking.test.ts (21 tests) 6ms
+
+ Test Files  1 passed (1)
+      Tests  21 passed (21)
+   Start at  19:45:15
+   Duration  262ms (transform 55ms, setup 0ms, collect 45ms, tests 6ms, environment 0ms, prepare 60ms)
 ```
+
+The diff removes one statement (`bookings.push`) and the comment that described it, which no longer
+describes anything. The checker counts the body change as code lines only (B3).
 
 ---
 
