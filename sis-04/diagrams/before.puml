@@ -1,0 +1,34 @@
+' diagrams/before.puml — the starting point (week-08): one fixed room list, the page picks the room
+' and the blocked flag itself, and the rules are written twice (canBook and checkAvailability).
+@startuml
+title Before (baseline 33401ef)
+component "App.tsx" as App
+component "RoomSelector.tsx" as RoomSelector
+component "AvailabilityForm.tsx\n(incl. 'Room is blocked' checkbox)" as Form
+component "ResultPanel.tsx" as Result
+component "BookingList.tsx" as List
+component "booking.ts\ncanBook()" as Booking
+component "utils/availability.ts\ncheckAvailability()" as Availability
+component "data/rooms.ts\nROOMS (no equipment)" as Data
+component "types.ts\nRoom, Booking" as Types
+component "utils/time.ts" as Time
+
+App --> RoomSelector
+App --> Form
+App --> Result
+App --> List
+App --> Booking : canBook()
+App --> Availability : checkAvailability()
+App --> Data : ROOMS.find() x2
+App --> Time
+App --> Types
+Availability --> Booking : constants
+Availability --> Types
+Data --> Types
+RoomSelector --> Types
+List --> Types
+List --> Time
+Result --> Types
+Result --> Time
+note right of App : decides which room and which\n'blocked' value reach canBook
+@enduml

@@ -1,0 +1,55 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: #f3f5f9;
+  color: #1c2333;
+}
+.app { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+header h1 { margin: 0 0 4px; font-size: 1.6rem; }
+.muted { color: #5b6478; margin: 4px 0; }
+.layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+.column { display: flex; flex-direction: column; gap: 16px; }
+.card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(20, 30, 60, 0.08); }
+.card h2 { margin: 0 0 4px; font-size: 1.2rem; }
+.card h3 { margin: 16px 0 8px; font-size: 1rem; }
+.field { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.field-row { display: flex; gap: 12px; }
+.form { display: flex; flex-direction: column; gap: 12px; }
+label { font-weight: 600; font-size: 0.9rem; }
+input:disabled { background: #eef1f6; color: #8a93a6; }
+input, select { font: inherit; padding: 10px; border: 1px solid #c8cfdc; border-radius: 8px; width: 100%; background: #fff; }
+.checkbox { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.checkbox input { width: auto; }
+button { font: inherit; font-weight: 600; padding: 12px; border: 0; border-radius: 8px; background: #2f5bea; color: #fff; cursor: pointer; }
+button:hover { background: #2448c4; }
+.result { border-left: 6px solid #c8cfdc; }
+.result-ok { border-left-color: #1f9d55; }
+.result-bad { border-left-color: #d64545; }
+.decision { font-size: 1.5rem; font-weight: 700; margin: 0 0 8px; }
+.result-ok .decision { color: #1f9d55; }
+.result-bad .decision { color: #d64545; }
+.reasons { margin: 0; padding-left: 20px; }
+.bookings { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.bookings li { display: flex; gap: 12px; padding: 8px 10px; background: #f3f5f9; border-radius: 8px; }
+.time { font-variant-numeric: tabular-nums; font-weight: 600; }
+.badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 0.85rem; font-weight: 600; }
+.badge-blocked { background: #fde2e2; color: #a12b2b; }
+@media (max-width: 720px) {
+  .layout { grid-template-columns: 1fr; }
+  .field-row { flex-direction: column; }
+}
+h2 { margin: 0 0 8px; font-size: 1.1rem; }
+.equipment { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.equipment legend { font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; padding: 0; }
+.chip { background: #f3f5f9; border: 1px solid #c8cfdc; border-radius: 999px; padding: 6px 12px; font-weight: 500; }
+.rooms { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.room { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; row-gap: 2px; align-items: center; padding: 10px 12px; border: 1px solid #c8cfdc; border-radius: 10px; cursor: pointer; }
+.room input { width: auto; grid-row: span 2; }
+.room .muted, .room .badge { grid-column: 2; margin: 0; }
+.room .badge { justify-self: start; }
+.room-name { font-weight: 600; }
+.room-selected { border-color: #2f5bea; background: #eef2ff; }
+.empty { border-left: 6px solid #d9a400; }
+.empty .decision { color: #8a6a00; font-size: 1.2rem; }
+button:disabled { background: #9aa6c4; cursor: not-allowed; }
