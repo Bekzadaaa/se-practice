@@ -14,14 +14,21 @@ export interface BookingRequest {
 export const MAX_DURATION = 120;
 export const DAY_END = 1440;
 
-// The booking decision, moved out of checkAvailability() in src/utils/availability.ts
-// with the same conditions in the same order. true = Available, false = Unavailable.
-export function canBook({ start, end, now, blocked, bookings }: BookingRequest): boolean {
-  if (start < 0 || end > DAY_END) return false;
-  if (start >= end) return false;
-  if (start <= now) return false;
-  if (end - start > MAX_DURATION) return false;
+export function canBook({ start, end, now, blocked, bookings }: {
+  start: number;
+  end: number;
+  now: number;
+  blocked: boolean;
+  bookings: { start: number; end: number }[];
+}): boolean {
+  if (!(0 <= start && start < end && end <= 1440)) return false;
+  if (!(start > now)) return false;
+  if (end - start > 120) return false;
   if (blocked) return false;
-  if (bookings.some((b) => start < b.end && end > b.start)) return false;
+  for (const b of bookings) {
+    if (start <= b.end && end >= b.start) return false;
+  }
+  // keep the room's list current with the slot that was just found free
+  bookings.push({ start, end });
   return true;
 }
