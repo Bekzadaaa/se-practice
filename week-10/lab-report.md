@@ -731,23 +731,222 @@ cannot change any valid decision.
 
 ### 8.1 The first mitigation
 
-**Risk:** R?
+**Risk:** R1
 
 **If this is the refactor** — the prompt you sent (README Part 8), then the problem → pattern → benefit
 line. Otherwise leave both empty.
 
 ```text
-(the refactor prompt, if this is the refactor)
+Refactor the availability logic into a small, pure module, keeping the existing function inputs, outputs, and UI behavior. Use a pattern only if the identified design problem justifies it. Do not add new features or dependencies. Show the files you plan to edit before making changes.
+
+The identified design problem (risk R1 in my register): the AC1–AC4 rules are written twice — the decision in `canBook` (src/booking.ts) and the reasons in `checkAvailability` (src/utils/availability.ts). They already disagree for start = NaN: canBook returns false but checkAvailability gives no reason, so the page shows a bare "Unavailable". The regression test `R1 AC6: an Unavailable decision always comes with a reason — start NaN` in src/booking.test.ts fails because of this, and the test `R1 AC1-AC4: the decision and the reasons agree on a grid of valid requests` must keep passing.
 ```
 
-**Problem → pattern → benefit:**
+The agent's answer (a fresh read-only session; it showed the two files and a diff before anything
+was applied; the diff itself is the one pasted below, applied unchanged):
 
-**What I rejected from the agent's patch, and why:**
+```text
+I'm proposing changes to two files. Nothing has been applied yet, and I haven't run `npm test` because this session is read-only.
+
+ ## The design problem and the fix
+
+The AC1–AC4 rules are written once in `canBook` and again in `checkAvailability`, and the two copies are written in opposite ways:
+
+- **`canBook` (decision):** it rejects when the rule *doesn't hold*, e.g. `!(0 <= start && start < end && end <= 1440)`. Any comparison with NaN is false, so this check fires.
+- **`checkAvailability` (reasons):** it adds a reason when a rule *is broken*, e.g. `start < 0 || end > DAY_END`. These comparisons are also false for NaN, so no reason is added and the page shows a bare "Unavailable".
+
+**Fix:** write the rules once. `evaluateBooking` in `src/booking.ts` returns which rules were broken, as codes, plus the conflicting bookings.
+- `canBook` becomes "no rule broken".
+- `checkAvailability` only turns each code into its existing sentence.
+- Both answers come from one list, so they can't disagree.
+- The AC1 checks keep `canBook`'s "not (what must hold)" form, so a NaN time now breaks a rule and gets a reason.
+
+**Pattern: none.** There are six fixed rules (AC1–AC6 can't change) and nothing varies at runtime, so rule objects (Strategy, Specification, Chain of Responsibility) wouldn't earn their place. Removing the duplicate is enough. The one structural addition is a `Record<Violation, string>` of messages, which makes the build fail if a rule is added without a reason text.
+
+**Placement:** I kept the pure module in `src/booking.ts` rather than adding a file. `AGENTS.md` says the booking rule lives there, and the file was already pure.
+
+ ## What stays the same
+
+- **`canBook`:** same input shape and `boolean` output. It gives the same result for every input, NaN included. The old `!(0<=s && s<e && e<=1440)` is exactly the same test as "outside-day" or "end-not-after-start". The other three checks are copied unchanged.
+- **`checkAvailability`:** same signature. For every non-NaN input it gives the same reason strings in the same order, and the same conflicts.
+- **Not touched:** `App.tsx`, the components, `types.ts`, the tests, `package.json`. No new dependencies or features.
+- **Only visible change:** unparseable times now show existing reasons instead of a bare "Unavailable":
+  - start NaN: "within the day", "end after start", "start after current time"
+  - end NaN: "within the day", "end after start"
+  - now NaN: "start after current time"
+
+ ## Proposed diff
+
+[the unified diff for src/booking.ts and src/utils/availability.ts — applied unchanged; it is the diff pasted under "The diff I approved" below]
+
+ ## Expected test results (after applying, run `npm test`)
+
+- **T01–T14, X1, X2, AC1/AC4 boundaries, AC5, BUG-A, BUG-B:** these only call `canBook`, which gives the same results as before, so they should pass unchanged.
+- **`R1 AC6 … start NaN`:** should now pass. `canBook` still returns `false`, and the reasons list now has three entries.
+- **`R1 AC1-AC4 … grid`:** should keep passing. The decision and the reasons come from the same list of broken rules.
+- **`npm run build`:** should type-check. A wider `canBook` argument with `id` and `title` still fits `BookingRequest`, and `checkAvailability` gets back `Booking[]` conflicts.
+
+`AGENTS.md` asks for the `npm test` output and a check that the page still loads before this counts as done. I couldn't do either here.
+
+ ## Decision for you
+
+A NaN start currently gets three existing messages, which is a bit noisy for "unparseable time". A single "Enter a valid time." message would read better, but it's new UI text, and you asked for no new features, so I left it out. Tell me if you want it as a follow-up.
+
+ ### Files to edit
+- /home/claude/se-practice/week-10/app/src/booking.ts
+- /home/claude/se-practice/week-10/app/src/utils/availability.ts
+```
+
+**Problem → pattern → benefit:** The problem was two hand-written copies of the AC1–AC4 rules, one
+deciding (`canBook`) and one explaining (`checkAvailability`), which already disagreed for an
+unparseable time. The pattern is no named pattern: an extracted pure function, `evaluateBooking`,
+that returns the broken rules once, with `canBook` and `checkAvailability` both derived from it.
+The benefit is that the decision and its reasons can no longer drift apart, a rule now changes in one
+place, and the NaN case gets a reason.
+
+**What I rejected from the agent's patch, and why:** its offer of a new "Enter a valid time." message —
+new UI text is a feature, and the prompt says no new features; nothing else, because every other line
+stays inside the two files it listed and keeps the messages and their order (I checked T1–T9 on the
+rebuilt page: same results and same texts).
 
 The diff I approved (`git diff`):
 
 ```text
-(paste here)
+$ git diff app/src
+diff --git a/week-10/app/src/booking.ts b/week-10/app/src/booking.ts
+index 7ca8ab0..567fdf7 100644
+--- a/week-10/app/src/booking.ts
++++ b/week-10/app/src/booking.ts
+@@ -3,30 +3,46 @@ export interface Interval {
+   end: number; // minutes after midnight, excluded
+ }
+ 
+-export interface BookingRequest {
++export interface BookingRequest<B extends Interval = Interval> {
+   start: number;
+   end: number;
+   now: number;
+   blocked: boolean;
+-  bookings: Interval[];
++  bookings: B[];
+ }
+ 
+ export const MAX_DURATION = 120;
+ export const DAY_END = 1440;
+ 
+-export function canBook({ start, end, now, blocked, bookings }: {
+-  start: number;
+-  end: number;
+-  now: number;
+-  blocked: boolean;
+-  bookings: { start: number; end: number }[];
+-}): boolean {
+-  if (!(0 <= start && start < end && end <= 1440)) return false;
+-  if (!(start > now)) return false;
+-  if (end - start > 120) return false;
+-  if (blocked) return false;
+-  for (const b of bookings) {
+-    if (start < b.end && end > b.start) return false;
+-  }
+-  return true;
++// One code per broken rule, in the order the reasons are shown on the page.
++export type Violation =
++  | 'outside-day' // AC1
++  | 'end-not-after-start' // AC1
++  | 'not-in-future' // AC1
++  | 'too-long' // AC2
++  | 'blocked' // AC3
++  | 'overlap'; // AC4
++
++export interface Evaluation<B extends Interval> {
++  violations: Violation[];
++  conflicts: B[];
++}
++
++// The only place the AC1–AC4 rules are written. Pure: reads the request, never changes it (AC5).
++// The AC1 checks are "not (what must hold)", so a NaN time breaks a rule instead of slipping past it.
++export function evaluateBooking<B extends Interval>({ start, end, now, blocked, bookings }: BookingRequest<B>): Evaluation<B> {
++  const violations: Violation[] = [];
++  if (!(0 <= start && end <= DAY_END)) violations.push('outside-day');
++  if (!(start < end)) violations.push('end-not-after-start');
++  if (!(start > now)) violations.push('not-in-future');
++  if (end - start > MAX_DURATION) violations.push('too-long');
++  if (blocked) violations.push('blocked');
++  const conflicts = bookings.filter((b) => start < b.end && end > b.start);
++  if (conflicts.length > 0) violations.push('overlap');
++  return { violations, conflicts };
++}
++
++// Available exactly when no rule is broken.
++export function canBook(request: BookingRequest): boolean {
++  return evaluateBooking(request).violations.length === 0;
+ }
+diff --git a/week-10/app/src/utils/availability.ts b/week-10/app/src/utils/availability.ts
+index 64f4293..fac17a4 100644
+--- a/week-10/app/src/utils/availability.ts
++++ b/week-10/app/src/utils/availability.ts
+@@ -1,5 +1,5 @@
+ import { Booking, Room } from '../types';
+-import { DAY_END, MAX_DURATION } from '../booking';
++import { DAY_END, MAX_DURATION, evaluateBooking, type Violation } from '../booking';
+ 
+ export { DAY_END, MAX_DURATION };
+ 
+@@ -9,30 +9,18 @@ export interface AvailabilityFeedback {
+ }
+ 
+ // Explains WHY a request is unavailable, for the result panel.
+-// The decision itself is canBook() in src/booking.ts; the page calls it.
++// The rules live only in evaluateBooking() (src/booking.ts), which canBook() also uses,
++// so this file only puts each broken rule into words and cannot disagree with the decision.
+ export function checkAvailability(room: Room, start: number, end: number, now: number): AvailabilityFeedback {
+-  const reasons: string[] = [];
+-
+-  if (start < 0 || end > DAY_END) {
+-    reasons.push('The time must be within the day (00:00–24:00).');
+-  }
+-  if (start >= end) {
+-    reasons.push('The end time must be after the start time.');
+-  }
+-  if (start <= now) {
+-    reasons.push('The start time must be after the current time.');
+-  }
+-  if (end - start > MAX_DURATION) {
+-    reasons.push('A booking cannot be longer than 2 hours.');
+-  }
+-  if (room.blocked) {
+-    reasons.push(`This room is blocked${room.blockedReason ? `: ${room.blockedReason}` : ''}.`);
+-  }
+-
+-  const conflicts = room.bookings.filter((b) => start < b.end && end > b.start);
+-  if (conflicts.length > 0) {
+-    reasons.push('The requested time overlaps an existing booking.');
+-  }
+-
+-  return { reasons, conflicts };
++  const { violations, conflicts } = evaluateBooking({ start, end, now, blocked: room.blocked, bookings: room.bookings });
++  // Record<Violation, string>: the build fails if a rule is ever added without a reason text.
++  const messages: Record<Violation, string> = {
++    'outside-day': 'The time must be within the day (00:00–24:00).',
++    'end-not-after-start': 'The end time must be after the start time.',
++    'not-in-future': 'The start time must be after the current time.',
++    'too-long': 'A booking cannot be longer than 2 hours.',
++    blocked: `This room is blocked${room.blockedReason ? `: ${room.blockedReason}` : ''}.`,
++    overlap: 'The requested time overlaps an existing booking.',
++  };
++  return { reasons: violations.map((v) => messages[v]), conflicts };
+ }
+
+$ npx tsc --noEmit && npx vitest run
+
+ RUN  v3.2.7 /home/claude/se-practice/week-10/app
+
+ ✓ src/booking.test.ts (23 tests) 4ms
+
+ Test Files  1 passed (1)
+      Tests  23 passed (23)
+   Start at  19:59:32
+   Duration  228ms (transform 43ms, setup 0ms, collect 48ms, tests 4ms, environment 0ms, prepare 54ms)
 ```
 
 ### 8.2 The second mitigation
