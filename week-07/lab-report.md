@@ -172,8 +172,12 @@ requests* · *mocked booking function*, or your own) and the AC that decides it.
 
 | # | Test or part of the suite | What is weak or wrong | Decision: accept / revise / reject | AC or reason |
 | --- | --- | --- | --- | --- |
-| 1 | | | accept / revise / reject | |
-| 2 | | | accept / revise / reject | |
+| 1 | T09–T12 written as one `it.each` table with titles from `%s` | Own: table-driven — the IDs exist only as data, not in the source; one failing row is reported under a generated name, and the course rule is one test per case | revise — four separate tests, each with its ID and input in the title | AC4 (overlap rule), rule "no test.each" |
+| 2 | Module-level `const bookings` shared by `request()` in every test, including the AC5 test | Own: isolation — every test passes the same array; if `canBook` ever pushed into it, later tests would run on changed data and the order would decide the result | revise — a `defaultBookings()` factory, a fresh array per test | AC5: the data must stay unchanged, and the test must not depend on other tests |
+| 3 | Expected values of T01–T14, X1, X2 | Checked for *expected = current output*: all 17 decisions match the plan in §3, which comes from the ACs (T06 true for exactly 120 min by AC2, T02 false for start = now by AC1) | accept | AC1, AC2, AC4 |
+| 4 | AC5 test (660–720, `structuredClone`, `toEqual`) | Checked for *no exception occurred*: it asserts `.toBe(true)` first, so the request really is Available and reaches the overlap loop, then compares the data | accept (rewritten with the fresh fixture and `JSON.stringify`) | AC5 |
+| 5 | Imports | Checked for *mocked booking function*: `import { canBook } from './booking'`, no `vi.mock` | accept | the deck: import the function used by the page |
+| 6 | Boundaries | *Only valid requests* is not the problem, but two boundaries are missing: start one minute after now (541) and a one-minute overlap (659–720) | revise — two tests added after the improvement prompt | AC1, AC4 |
 
 ---
 
@@ -186,15 +190,27 @@ The **real** terminal output of the first run of the first suite, pasted unedite
 is not a run.
 
 ```text
-(paste here)
+$ npx vitest run
+
+ RUN  v3.2.7 /home/claude/se-practice/week-07/app
+
+ ✓ src/booking.test.ts (17 tests) 4ms
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  18:45:48
+   Duration  222ms (transform 39ms, setup 0ms, collect 34ms, tests 4ms, environment 0ms, prepare 48ms)
 ```
+
+Vitest counts 17 tests although the file has 14 `it(...)` calls: the `it.each` table expands into
+four tests (T09–T12).
 
 **Each failure, diagnosed** (the deck's table: import/runner error · assertion mismatch · result
 changing per run · no tests discovered). Write `none` in the first row if nothing failed.
 
 | Failing test | Observed failure | First check | Test repair or implementation fix? | Action taken |
 | --- | --- | --- | --- | --- |
-| | | | | |
+| none | 0 failed, 17 passed | expected values compared with §3 by hand before running (all from the ACs) | neither | none needed; a green first run is only evidence for these cases, so the suite was still reviewed (§5) and tried against M1–M3 (§7) |
 
 ### 6.2 The improvement prompt
 
@@ -202,8 +218,40 @@ The deck's improvement prompt exactly as sent, followed by the actual output fro
 paste the assistant's answer, unedited:
 
 ```text
-(paste here)
+Review this test suite against AC1–AC6 and our case table. Identify incorrect expectations, weak assertions, duplicated cases, and missing boundaries.
+
+For each proposed change, explain the requirement and the defect it could detect. Improve the tests without changing correct expectations to match buggy behavior.
+
+Use the actual failure output below. Separate test repairs from implementation fixes.
+
+$ npx vitest run
+
+ RUN  v3.2.7 /home/claude/se-practice/week-07/app
+
+ ✓ src/booking.test.ts (17 tests) 4ms
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  18:45:48
+   Duration  222ms (transform 39ms, setup 0ms, collect 34ms, tests 4ms, environment 0ms, prepare 48ms)
+
+--- Answer ---
+Incorrect expectations: none. All 17 expected decisions match the case table and AC1–AC4 (T06 true for exactly 120 minutes, T02 false for start = now, T01/T08/X2 true for touching). The run has no failures, so there is nothing to diagnose as an implementation fix.
+
+Implementation fixes: none. canBook gave the table's answer for every case.
+
+Test repairs and improvements:
+1. Weak structure — T09–T12 are one it.each. A failure there is reported under a generated title and the IDs are not searchable in the source. Split into four tests, one per ID. Requirement AC4; defect detected: same as now, but each overlap shape is reported separately.
+2. Weak isolation — every test shares the module-level `bookings` array. A canBook that mutated its input (e.g. pushed the accepted request) would make later tests depend on the order. Use a factory that returns a fresh array per test. Requirement AC5; defect detected: a mutation would show up in the AC5 test itself instead of corrupting other tests.
+3. AC5 assertion — keep `.toBe(true)` before the data comparison (so the request really is Available), and compare by value (JSON.stringify or toEqual against the literal [{600,660}]), not only against a clone of the same array.
+4. Missing boundary (AC1): start one minute after now, 541–600 → true. Detects a "start must be at least 2 minutes after now" or an off-by-one like start <= now + 1.
+5. Missing boundary (AC4): a one-minute overlap, 659–720 → false. Detects an overlap check that only compares whole intervals or uses b.end - 1.
+6. Duplicated cases: none — T01 and T13 share 660–720 on purpose (blocked changes the answer).
+Not changed: X1 (1380–1440) and X2 (two touching bookings) already cover the end-of-day boundary and both touching sides at once.
 ```
+
+I accepted 1–5 (they match my own review in §5) and applied them to `app/src/booking.test.ts`; no
+expected value was changed. The final suite has 19 tests.
 
 ### 6.3 The final run
 
