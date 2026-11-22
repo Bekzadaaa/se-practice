@@ -18,7 +18,7 @@ grader find your answers by them. You can add rows to any table, but never remov
 | Assistant that generated the tests (tool) | Claude (Anthropic) |
 | Exact model (with its version, or `not displayed`) | claude-opus-5-5 (Claude Opus 5.5) |
 | Where I ran the tests (Bolt terminal / my computer / Codespace) | a Linux terminal (Node 22, npm) in a Claude cloud workspace — same as a Codespace |
-| Vitest version (the `RUN  v…` line of a run) | |
+| Vitest version (the `RUN  v…` line of a run) | 3.2.7 |
 | Test command | `npx vitest run` (also `npm test`) inside `week-07/app/` |
 
 ---
@@ -202,8 +202,8 @@ $ npx vitest run
    Duration  222ms (transform 39ms, setup 0ms, collect 34ms, tests 4ms, environment 0ms, prepare 48ms)
 ```
 
-Vitest counts 17 tests although the file has 14 `it(...)` calls: the `it.each` table expands into
-four tests (T09–T12).
+Vitest counts 17 tests although the file has 13 `it(...)` calls: the one `it.each` table expands
+into four more tests (T09–T12).
 
 **Each failure, diagnosed** (the deck's table: import/runner error · assertion mismatch · result
 changing per run · no tests discovered). Write `none` in the first row if nothing failed.
@@ -418,7 +418,7 @@ Use the same IDs as `known_fails` in `submission.yml`. Write `none` if the run i
 
 | Measure | First suite | Improved suite |
 | --- | --- | --- |
-| Executed / passed / failed | 17 / 17 / 0 (14 `it` calls; `it.each` expands to 4) | 19 / 19 / 0 |
+| Executed / passed / failed | 17 / 17 / 0 (13 `it` calls + one `it.each` that expands to 4) | 19 / 19 / 0 |
 | Requirements with meaningful tests (AC IDs and gaps) | AC1–AC5 covered; gaps: no "start one minute after now", no one-minute overlap; AC6 not unit-testable | AC1–AC5 with both extra boundaries; AC6 only by the manual checks in §8 |
 | Selected mutants detected | 3 of 3 (M1 1 failed, M2 4 failed, M3 1 failed — I ran them on the first suite too) | 3 of 3 (M1 1 failed, M2 5 failed, M3 1 failed) |
 | Accepted / revised / rejected tests | — | 13 accepted as written (T01–T08, T13, T14, X1, X2, AC5 values), 4 revised (T09–T12 split from `it.each`), fixture revised (shared array → fresh factory), 2 added, 0 rejected |
