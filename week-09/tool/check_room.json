@@ -34,10 +34,13 @@
           "properties": {
             "start": { "type": "integer", "minimum": 0, "maximum": 1440 },
             "end": { "type": "integer", "minimum": 0, "maximum": 1440 }
-          }
+          },
+          "required": ["start", "end"],
+          "additionalProperties": false
         }
       }
     },
-    "required": ["start", "end", "now", "blocked", "bookings"]
+    "required": ["start", "end", "now", "blocked", "bookings"],
+    "additionalProperties": false
   }
 }

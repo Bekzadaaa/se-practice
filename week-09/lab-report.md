@@ -39,18 +39,18 @@ say what you changed.
 
 | Case | First run | Final run | What you changed |
 | --- | --- | --- | --- |
-| S01 | PASS | | |
-| S02 | PASS | | |
-| S03 | PASS | | |
-| S04 | PASS | | |
-| S05 | FAIL | | |
-| S06 | PASS | | |
-| S07 | PASS | | |
-| S08 | FAIL | | |
-| S09 | PASS | | |
-| S10 | PASS | | |
-| S11 | PASS | | |
-| S12 | PASS | | |
+| S01 | PASS | PASS | nothing |
+| S02 | PASS | PASS | nothing |
+| S03 | PASS | PASS | nothing |
+| S04 | PASS | PASS | nothing |
+| S05 | FAIL | PASS | added `"additionalProperties": false` to the top-level `inputSchema`: without it any extra field (`room`) was allowed |
+| S06 | PASS | PASS | nothing |
+| S07 | PASS | PASS | nothing |
+| S08 | FAIL | PASS | added `"required": ["start", "end"]` (and `additionalProperties: false`) to `bookings.items`: the item schema listed the two fields but did not require them |
+| S09 | PASS | PASS | nothing |
+| S10 | PASS | PASS | nothing |
+| S11 | PASS | PASS | nothing |
+| S12 | PASS | PASS | nothing |
 
 ## 4. Function calling — what the model wrote
 
