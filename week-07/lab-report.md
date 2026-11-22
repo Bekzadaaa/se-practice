@@ -58,23 +58,23 @@ for every test. **The Expected column comes from AC1–AC4, never from the code.
 
 | ID | Candidate / changed input | Expected | AC | Reason (in your words) |
 | --- | --- | --- | --- | --- |
-| T01 | 660–720 (touching after) | true | AC4 | |
-| T02 | 540–570 (starts now) | false | AC1 | |
-| T03 | 720–720 (zero duration) | false | AC1 | |
-| T04 | 750–720 (reversed) | false | AC1 | |
-| T05 | 1380–1441 (past day end) | false | AC1 | |
-| T06 | 720–840 (120 minutes) | true | AC2 | |
-| T07 | 720–841 (121 minutes) | false | AC2 | |
-| T08 | 570–600 (touching before) | true | AC4 | |
-| T09 | 630–690 (partial overlap) | false | AC4 | |
-| T10 | 570–690 (contains booking) | false | AC4 | |
-| T11 | 615–645 (inside booking) | false | AC4 | |
-| T12 | 600–660 (identical interval) | false | AC4 | |
-| T13 | 660–720, blocked = true | false | AC3 | |
-| T14 | 630–690, bookings = [] | true | AC4 | |
-| AC5 | an Available request — the bookings after the call equal the bookings before | true, data unchanged | AC5 | |
-| X1 | | | | |
-| X2 | | | | |
+| T01 | 660–720 (touching after) | true | AC4 | The booking is [600, 660); the end 660 is excluded, so 660–720 only touches it and nothing overlaps. 540 < 660, 60 min, not blocked. |
+| T02 | 540–570 (starts now) | false | AC1 | start 540 equals now 540; AC1 needs start strictly after the current time, so a request starting now is rejected. |
+| T03 | 720–720 (zero duration) | false | AC1 | start 720 is not less than end 720; AC1 needs start < end, a zero-length interval is not a booking. |
+| T04 | 750–720 (reversed) | false | AC1 | start 750 is after end 720, so start < end fails; a reversed interval is rejected even though it does not overlap. |
+| T05 | 1380–1441 (past day end) | false | AC1 | end 1441 is one minute past 1440 (24:00); AC1 needs end ≤ 1440, so it is rejected though the length is only 61 min. |
+| T06 | 720–840 (120 minutes) | true | AC2 | 840 − 720 = 120 minutes; AC2 rejects only bookings longer than 120, so exactly 2 hours is allowed. No overlap with 600–660. |
+| T07 | 720–841 (121 minutes) | false | AC2 | 841 − 720 = 121 minutes, one minute longer than 120, so AC2 rejects it. |
+| T08 | 570–600 (touching before) | true | AC4 | The request [570, 600) excludes 600, where the booking starts, so they only touch. 570 > now 540, 30 min. |
+| T09 | 630–690 (partial overlap) | false | AC4 | 630 is inside 600–660 and 690 is after it: the minutes 630–659 belong to both, so it overlaps. |
+| T10 | 570–690 (contains booking) | false | AC4 | 570–690 starts before and ends after the booking, so it covers all of 600–660: overlap. |
+| T11 | 615–645 (inside booking) | false | AC4 | 615–645 lies completely inside 600–660; every minute of it is already booked. |
+| T12 | 600–660 (identical interval) | false | AC4 | The same interval as the booking: all 60 minutes overlap, touching does not apply. |
+| T13 | 660–720, blocked = true | false | AC3 | 660–720 would be Available (T01), but the room is blocked, and AC3 rejects any request for a blocked room. |
+| T14 | 630–690, bookings = [] | true | AC4 | 630–690 overlapped only because of the 600–660 booking (T09); with no bookings there is nothing to overlap and AC1/AC2 hold. |
+| AC5 | an Available request — the bookings after the call equal the bookings before | true, data unchanged | AC5 | A check is only a question: after an Available 660–720 the bookings array must still be exactly [{600,660}] — nothing added or changed. |
+| X1 | 1380–1440 (23:00–24:00, ends exactly at the end of the day) | true | AC1 | AC1 allows end ≤ 1440, so ending exactly at 24:00 is valid; 60 min, after now, no overlap. T05 checks 1441 (just past), X1 checks the other side of the same boundary. |
+| X2 | 660–720 with bookings = [{600–660}, {720–780}] (touches two bookings) | true | AC4 | The request starts where one booking ends and ends where the next starts; both ends only touch, so no minute is shared. T01/T08 test one touching side at a time, never both at once. |
 
 X1 and X2 are **your own two cases**: a boundary or a state that T01–T14 do not reach. Fill all
 five columns.
