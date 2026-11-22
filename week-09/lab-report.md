@@ -181,16 +181,16 @@ but not "short".
 <!-- The commit you would make before letting such an agent edit anything: its real SHA (git log --oneline),
      the exact command that returns you to it, and what that command would throw away. -->
 
-Checkpoint: `deeb1d9 week-09: model calls for R1-R3 saved exactly as returned (three fresh sessions)`
+Checkpoint: `ff97e46 week-09: model calls for R1-R3 saved exactly as returned (three fresh sessions)`
 — the commit with the definition and the three calls, made before any agent touches the folder.
 
-To return to it: `git reset --hard deeb1d9` (on the `week-09` branch).
+To return to it: `git reset --hard ff97e46` (on the `week-09` branch).
 
-What it throws away: every commit on `week-09` after `deeb1d9` and every uncommitted change in the
+What it throws away: every commit on `week-09` after `ff97e46` and every uncommitted change in the
 whole working tree — tracked files go back to the checkpoint. Untracked files (for example a new file
 the agent created) stay, so after the reset I also check `git status` and remove them by hand
 (`git clean -n` first to see the list). A gentler option that keeps my other work is
-`git checkout deeb1d9 -- week-09`, which only restores the files in `week-09/`.
+`git checkout ff97e46 -- week-09`, which only restores the files in `week-09/`.
 
 ## 8. Checker output
 
