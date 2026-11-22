@@ -458,16 +458,112 @@ what is missing.
 
 ### 6.1 The playbook prompt and the answer
 
-What you sent, exactly (the deck's prompt):
+What you sent, exactly (the deck's prompt), to another fresh read-only session opened in `week-10/app/`:
 
 ```text
-(paste here)
+Review AGENTS.md and project documentation only. Compare them with these constraints: one fictional room; no login/database; preserve AC1–AC6; no secrets; no external deployments; run tests before proposing acceptance. Report missing or conflicting rules. Draft a minimal patch to AGENTS.md, but wait for my approval before applying it.
 ```
 
-The assistant's answer, pasted unedited:
+The assistant's answer, pasted unedited (inner code fences shown as ''' and heading lines indented by one space):
 
 ```text
-(paste here)
+I reviewed AGENTS.md against your six constraints. It's the only project documentation: there's no README or docs folder. Three of its rules contradict your constraints, and three of your constraints are missing from it. I haven't changed anything, and I haven't run the tests.
+
+ ## Conflicting rules (AGENTS.md says the opposite)
+
+| # | AGENTS.md line | Your constraint | Problem |
+|---|---|---|---|
+| C1 | L12: "use real room names and the real timetable from the KBTU portal" | One fictional room | It asks for real rooms and real data, not one fictional room. Using portal data could also lead an agent to fetch from the portal or log in to it. |
+| C2 | L33: "If bookings need to persist, add a small Supabase table and a login page" | No login or database | It directly allows both. Supabase also needs keys (secrets) and an outside service. |
+| C3 | L38: "publish a preview with `npx netlify deploy --prod`" | No external deployments | It tells the agent to deploy to production. That also needs a Netlify auth token, which is a secret. |
+| C4 | L31: "Edit any file in the project" | Keep AC1–AC6 | Nothing stops an agent from editing the acceptance contract, the tests, or AGENTS.md itself. |
+
+ ## Missing rules
+
+- **M1, AC6:** the contract lists only AC1–AC5. AC6 doesn't exist in the file, and I don't know its wording, so I left a placeholder rather than make one up.
+- **M2, keeping the ACs:** there's no rule that AC1–AC6 are fixed, or that their tests must not be weakened or deleted to make a change pass.
+- **M3, no secrets:** nothing about API keys, tokens or `.env` values.
+- **M4, tests before acceptance:** "Before you finish" only says "make sure the page still loads". It never says to run tests.
+- **M5, wrong test command:** L26 says `npm run test:unit`, but `package.json` only has `"test": "vitest run"`, so that command would fail. I checked `package.json`, which is slightly beyond "documentation only", because it decides which test command actually works.
+
+A side note, from file names only (I didn't open the code): the project has `src/data/rooms.ts` and `src/components/RoomSelector.tsx`, which suggests the code supports several rooms. Once the docs say "one fictional room", the code may need a separate check.
+
+ ## Draft patch to AGENTS.md (not applied)
+
+AC1–AC5 stay word for word. AC6 is a TODO for you to fill in.
+
+'''diff
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -9,30 +9,41 @@
+ requested time. The booking rule lives in `src/booking.ts` (`canBook`); the page is `src/App.tsx`;
+ the tests are in `src/booking.test.ts`.
+
+-For realism, use real room names and the real timetable from the KBTU portal.
++Scope: exactly one fictional room with made-up sample bookings. Do not use real room names,
++the real KBTU timetable, or any data from the KBTU portal.
+
+ ## Acceptance contract
+
+ - AC1 Reject start ≥ end and requests in the past.
+ - AC2 Enforce the maximum allowed duration (120 minutes).
+ - AC3 Reject a blocked room.
+ - AC4 Reject overlaps. A request that touches a booking at an endpoint also counts as an overlap.
+ - AC5 Return Available / Unavailable without changing booking data.
++- AC6 <TODO: exact wording to be supplied>
+
++AC1–AC6 are fixed. Do not change, weaken, remove or renumber them, and do not edit or delete
++their tests to make a change pass. If a task seems to need that, stop and ask.
++
+ ## Commands
+
+ - Install: `npm install`
+ - Dev server: `npm run dev`
+-- Tests: `npm run test:unit`
++- Tests: `npm test`
+ - Build: `npm run build`
+
+ ## You may
+
+-- Edit any file in the project.
+-- Add packages when a task needs them.
+-- If bookings need to persist, add a small Supabase table and a login page.
++- Edit files in the project, except this file and the acceptance contract above.
++- Add packages when a task needs them, but no auth, database or deployment packages.
+
++## You must not
++
++- Add a login, accounts, a database, or any backend or persistence service (e.g. Supabase).
++- Add, commit or print secrets: no API keys, tokens, passwords or `.env` values in code, docs or output.
++- Deploy or publish anywhere (no Netlify, Vercel, GitHub Pages, etc.). Local `npm run dev` / `npm run preview` only.
++
+ ## Before you finish
+
+ - Make sure the page still loads.
+-- When the build passes, publish a preview with `npx netlify deploy --prod` so the team can see it.
++- Run `npm test` and `npm run build`. Propose acceptance only if both pass, and report the
++  results. If either fails, report the failure instead of proposing acceptance.
+'''
+
+How the patch covers each finding:
+- **C1:** the new "Scope" paragraph.
+- **C2:** removes the Supabase line and adds the "You must not" ban on login and databases.
+- **C3:** removes the Netlify step and bans deploying anywhere.
+- **C4 and M2:** narrows "Edit any file" and adds the "AC1–AC6 are fixed" paragraph.
+- **M1:** the AC6 placeholder.
+- **M3:** the no-secrets rule.
+- **M4:** the new "Before you finish" step: run tests and build, and propose acceptance only if both pass.
+- **M5:** changes the test command to `npm test`.
+
+ ## Before I apply it
+
+1. **AC6 wording:** send me the exact text and I'll put it in place of the TODO.
+2. **Approval:** tell me to apply the patch as it is, or tell me what to change.
+
+ ### Critical files
+- /home/claude/se-practice/week-10/app/AGENTS.md
+- /home/claude/se-practice/week-10/app/package.json (for the test command)
+- /home/claude/se-practice/week-10/app/src/booking.test.ts (where AC6's tests should be checked)
 ```
 
 ### 6.2 Findings and my decisions
@@ -477,18 +573,73 @@ One row per missing or conflicting rule the answer reported, plus any it missed.
 
 | # | Rule or line in AGENTS.md | Missing / conflicting | Decision | Why |
 | --- | --- | --- | --- | --- |
-| 1 | | | | |
-| 2 | | | | |
-| 3 | | | | |
-| 4 | | | | |
+| 1 | line 12 "use real room names and the real timetable from the KBTU portal" | conflicting (one fictional room) | modify | approved its Scope rule, but on ONE line: split over two lines, its second line ("the real KBTU timetable, or any data from the KBTU portal") had no negation of its own |
+| 2 | line 33 "add a small Supabase table and a login page" | conflicting (no login/database) | modify | removed it as proposed, but rejected the new "## You must not" section: the ban is one bullet in place under "You may", so the headings stay the same and the patch stays minimal |
+| 3 | line 38 "publish a preview with `npx netlify deploy --prod`" | conflicting (no external deployments) | approve | replaced with a ban on deploying or publishing anywhere; a person reviews the PR |
+| 4 | line 31 "Edit any file in the project" | conflicting (preserve AC1–AC6) | modify | "Edit files inside this project only; never edit the acceptance contract above" — one line instead of its two |
+| 5 | AC6 missing (it left `<TODO>`) | missing | modify | it was right not to invent the wording; I took AC6 from the contract in the README (§3): "Preserve clear UI feedback on desktop and mobile" |
+| 6 | "AC1–AC6 are fixed …" (its 2-line paragraph) | missing | modify | kept as one bullet under the contract |
+| 7 | no rule about secrets | missing | approve | one bullet: never add, commit or print secrets |
+| 8 | "Before you finish" never runs the tests | missing | modify | one bullet: run `npm test` before proposing a change as done, all tests must pass; I left out its `npm run build` gate to stay minimal (the build is listed under Commands) |
+| 9 | `npm run test:unit` does not exist | conflicting | approve | `npm test` (the real script, §2.1) |
+| 10 | AC4 "touching also counts as an overlap" — it kept AC1–AC5 "word for word" | conflicting (preserve AC1–AC6) — it MISSED this one | reject | rejected keeping it: it contradicts the contract (touching is allowed) and `src/booking.ts`; replaced with the contract's AC4. This is R2, my top risk, and the answer did not see it |
+| 11 | "Add packages … but no auth, database or deployment packages" | modify of a line that is not wrong | reject | not one of the six constraints; the login/database ban already covers it, and the patch stays smaller |
+| 12 | its side note: `src/data/rooms.ts` has four rooms | possible conflict with "one fictional room" | reject | not changed this week: the checker still checks one selected room at a time and all four are fictional; I note it as a scope question in §7.3 instead of rewriting the page |
 
 ### 6.3 The approved patch
 
 `git diff app/AGENTS.md`, after you applied only what you approved:
 
 ```text
-(paste here)
+$ git diff app/AGENTS.md
+diff --git a/week-10/app/AGENTS.md b/week-10/app/AGENTS.md
+index b786d88..1b91c62 100644
+--- a/week-10/app/AGENTS.md
++++ b/week-10/app/AGENTS.md
+@@ -9,30 +9,34 @@ A React + TypeScript page (Vite) that tells a student whether a campus room is f
+ requested time. The booking rule lives in `src/booking.ts` (`canBook`); the page is `src/App.tsx`;
+ the tests are in `src/booking.test.ts`.
+ 
+-For realism, use real room names and the real timetable from the KBTU portal.
++Scope: exactly one fictional room with made-up sample bookings; never use real room names, the real KBTU timetable or any data from the KBTU portal.
+ 
+ ## Acceptance contract
+ 
+ - AC1 Reject start ≥ end and requests in the past.
+ - AC2 Enforce the maximum allowed duration (120 minutes).
+ - AC3 Reject a blocked room.
+-- AC4 Reject overlaps. A request that touches a booking at an endpoint also counts as an overlap.
++- AC4 Reject overlaps; allow bookings that only touch at endpoints.
+ - AC5 Return Available / Unavailable without changing booking data.
++- AC6 Preserve clear UI feedback on desktop and mobile.
++- AC1–AC6 are fixed: never change them or weaken their tests to make a change pass.
+ 
+ ## Commands
+ 
+ - Install: `npm install`
+ - Dev server: `npm run dev`
+-- Tests: `npm run test:unit`
++- Tests: `npm test`
+ - Build: `npm run build`
+ 
+ ## You may
+ 
+-- Edit any file in the project.
++- Edit files inside this project only; never edit the acceptance contract above.
+ - Add packages when a task needs them.
+-- If bookings need to persist, add a small Supabase table and a login page.
++- Never add a login, accounts, a database or any backend (no Supabase); bookings stay in-memory sample data.
++- Never add, commit or print secrets: no API keys, tokens, passwords or `.env` values.
+ 
+ ## Before you finish
+ 
+ - Make sure the page still loads.
+-- When the build passes, publish a preview with `npx netlify deploy --prod` so the team can see it.
++- Run `npm test` before you propose a change as done; all tests must pass, and report the output.
++- Never deploy or publish anywhere (no Netlify, no --prod); a person reviews the pull request.
 ```
+
+10 lines changed (the checker's count), the same five headings as `provided/AGENTS.md`.
 
 ---
 
