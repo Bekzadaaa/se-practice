@@ -189,8 +189,181 @@ Run them **on the buggy code**. Both must fail here. That is the evidence that e
 its bug.
 
 ```text
-(paste here)
+$ npx vitest run
+
+ RUN  v3.2.7 /home/claude/se-practice/week-08/app
+
+ ❯ src/booking.test.ts (21 tests | 7 failed) 14ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T02 AC1: 540–570 starts exactly at the current time → Unavailable 1ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T03 AC1: 720–720 has zero duration → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T04 AC1: 750–720 is reversed → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > T05 AC1: 1380–1441 ends after 24:00 → Unavailable 0ms
+   ✓ AC1 — 0 ≤ start < end ≤ 1440 and start after now > X1 AC1: 1380–1440 ends exactly at 24:00 → Available 0ms
+   × AC1 — 0 ≤ start < end ≤ 1440 and start after now > AC1 boundary: 541–600 starts one minute after now → Available 5ms
+     → expected false to be true // Object.is equality
+   ✓ AC2 — at most 120 minutes > T06 AC2: 720–840 is exactly 120 minutes → Available 0ms
+   ✓ AC2 — at most 120 minutes > T07 AC2: 720–841 is 121 minutes → Unavailable 0ms
+   ✓ AC3 — blocked room > T13 AC3: 660–720 in a blocked room → Unavailable 0ms
+   × AC4 — overlaps rejected, touching allowed > T01 AC4: 660–720 touches the end of 600–660 → Available 1ms
+     → expected false to be true // Object.is equality
+   × AC4 — overlaps rejected, touching allowed > T08 AC4: 570–600 touches the start of 600–660 → Available 1ms
+     → expected false to be true // Object.is equality
+   ✓ AC4 — overlaps rejected, touching allowed > T09 AC4: 630–690 partially overlaps 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T10 AC4: 570–690 contains 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T11 AC4: 615–645 lies inside 600–660 → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T12 AC4: 600–660 is identical to the booking → Unavailable 0ms
+   ✓ AC4 — overlaps rejected, touching allowed > T14 AC4: 630–690 with bookings = [] → Available 0ms
+   × AC4 — overlaps rejected, touching allowed > X2 AC4: 660–720 touches 600–660 and 720–780 at once → Available 0ms
+     → expected false to be true // Object.is equality
+   ✓ AC4 — overlaps rejected, touching allowed > AC4 boundary: 659–720 shares one minute (659) with 600–660 → Unavailable 0ms
+   × AC5 — checking does not change the booking data > AC5: an Available check (660–720) leaves the bookings exactly as before 1ms
+     → expected false to be true // Object.is equality
+   × Week 08 regression tests > BUG-A AC4: 600–660 touches 540–600 and 660–720 on both sides → Available 0ms
+     → expected false to be true // Object.is equality
+   × Week 08 regression tests > BUG-B AC5: 720–780 touches nothing → Available, and the bookings are unchanged 1ms
+     → expected '[{"start":600,"end":660},{"start":720…' to be '[{"start":600,"end":660}]' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/booking.test.ts > AC1 — 0 ≤ start < end ≤ 1440 and start after now > AC1 boundary: 541–600 starts one minute after now → Available
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/booking.test.ts:38:29
+     36| 
+     37|   test('AC1 boundary: 541–600 starts one minute after now → Available'…
+     38|     expect(check(541, 600)).toBe(true);
+       |                             ^
+     39|   });
+     40| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  src/booking.test.ts > AC4 — overlaps rejected, touching allowed > T01 AC4: 660–720 touches the end of 600–660 → Available
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/booking.test.ts:60:29
+     58| describe('AC4 — overlaps rejected, touching allowed', () => {
+     59|   test('T01 AC4: 660–720 touches the end of 600–660 → Available', () =…
+     60|     expect(check(660, 720)).toBe(true);
+       |                             ^
+     61|   });
+     62| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  src/booking.test.ts > AC4 — overlaps rejected, touching allowed > T08 AC4: 570–600 touches the start of 600–660 → Available
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/booking.test.ts:64:29
+     62| 
+     63|   test('T08 AC4: 570–600 touches the start of 600–660 → Available', ()…
+     64|     expect(check(570, 600)).toBe(true);
+       |                             ^
+     65|   });
+     66| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  src/booking.test.ts > AC4 — overlaps rejected, touching allowed > X2 AC4: 660–720 touches 600–660 and 720–780 at once → Available
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/booking.test.ts:88:90
+     86| 
+     87|   test('X2 AC4: 660–720 touches 600–660 and 720–780 at once → Availabl…
+     88|     expect(check(660, 720, false, [{ start: 600, end: 660 }, { start: …
+       |                                                                                          ^
+     89|   });
+     90| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  src/booking.test.ts > AC5 — checking does not change the booking data > AC5: an Available check (660–720) leaves the bookings exactly as before
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/booking.test.ts:100:83
+     98|     const bookings = defaultBookings();
+     99|     const before = JSON.stringify(bookings);
+    100|     expect(canBook({ start: 660, end: 720, now: 540, blocked: false, b…
+       |                                                                                   ^
+    101|     expect(JSON.stringify(bookings)).toBe(before);
+    102|     expect(bookings).toEqual([{ start: 600, end: 660 }]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  src/booking.test.ts > Week 08 regression tests > BUG-A AC4: 600–660 touches 540–600 and 660–720 on both sides → Available
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/booking.test.ts:108:90
+    106| describe('Week 08 regression tests', () => {
+    107|   test('BUG-A AC4: 600–660 touches 540–600 and 660–720 on both sides →…
+    108|     expect(check(600, 660, false, [{ start: 540, end: 600 }, { start: …
+       |                                                                                          ^
+    109|   });
+    110| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  src/booking.test.ts > Week 08 regression tests > BUG-B AC5: 720–780 touches nothing → Available, and the bookings are unchanged
+AssertionError: expected '[{"start":600,"end":660},{"start":720…' to be '[{"start":600,"end":660}]' // Object.is equality
+
+Expected: "[{"start":600,"end":660}]"
+Received: "[{"start":600,"end":660},{"start":720,"end":780}]"
+
+ ❯ src/booking.test.ts:115:38
+    113|     const before = JSON.stringify(bookings);
+    114|     expect(canBook({ start: 720, end: 780, now: 540, blocked: false, b…
+    115|     expect(JSON.stringify(bookings)).toBe(before);
+       |                                      ^
+    116|   });
+    117| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 14 passed (21)
+   Start at  19:42:01
+   Duration  230ms (transform 54ms, setup 0ms, collect 45ms, tests 14ms, environment 0ms, prepare 46ms)
 ```
+
+BUG-A fails on `.toBe(true)` (the touching request is rejected). BUG-B fails on the data comparison,
+which is the right reason: `canBook` answered true and then added 720–780 to the array.
 
 ---
 
@@ -201,8 +374,8 @@ One row per defect. At least **BUG-A and BUG-B**. "Suspected cause" is your hypo
 
 | Defect | Test ID | Input | Expected | Actual | Suspected cause (line and why) |
 | --- | --- | --- | --- | --- | --- |
-| BUG-A | | | | | |
-| BUG-B | | | | | |
+| BUG-A | T01, T08, X2, "AC1 boundary 541–600" (and the AC5 test) | T01: 660–720, now 540, not blocked, bookings [600–660] | true (Available) | false | `if (start <= b.end && end >= b.start) return false;` in the loop of `canBook`: with `<=`/`>=` the request 660–720 and the booking 600–660 give `660 <= 660` and `720 >= 600`, both true, so a request that only touches the end (or, for T08 570–600, the start) counts as an overlap. Intervals exclude the end, so the comparison must be strict. Every failing test is a touching request; T09–T12 (real overlaps) still pass. |
+| BUG-B | AC5 (fails, but for the BUG-A reason), BUG-B (new) | AC5: 660–720 with bookings [600–660]; BUG-B: 720–780 with bookings [600–660] | true, and bookings still [600–660] | AC5: false (rejected before the push); BUG-B: true, but bookings become [600–660, 720–780] | `bookings.push({ start, end });` just before `return true`: the function adds the checked slot to the caller's array. My AC5 test cannot show it yet: its request 660–720 touches the booking, so BUG-A returns false before the push runs and the test fails on `.toBe(true)`, not on the comparison. That is why I need a request that touches nothing (720–780). In the page, `App.tsx` passes `room.bookings` from `ROOMS`, so every Available check would also add a booking to the sample data. |
 
 ---
 

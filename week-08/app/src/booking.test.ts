@@ -102,3 +102,16 @@ describe('AC5 — checking does not change the booking data', () => {
     expect(bookings).toEqual([{ start: 600, end: 660 }]);
   });
 });
+
+describe('Week 08 regression tests', () => {
+  test('BUG-A AC4: 600–660 touches 540–600 and 660–720 on both sides → Available', () => {
+    expect(check(600, 660, false, [{ start: 540, end: 600 }, { start: 660, end: 720 }])).toBe(true);
+  });
+
+  test('BUG-B AC5: 720–780 touches nothing → Available, and the bookings are unchanged', () => {
+    const bookings = defaultBookings();
+    const before = JSON.stringify(bookings);
+    expect(canBook({ start: 720, end: 780, now: 540, blocked: false, bookings })).toBe(true);
+    expect(JSON.stringify(bookings)).toBe(before);
+  });
+});
