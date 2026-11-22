@@ -87,17 +87,79 @@ five columns.
 `Vitest`, followed by the case table from section 3:
 
 ```text
-(paste here)
+Generate tests for the existing booking function using Vitest. Use AC1–AC6 and the reviewed case table below.
+
+Import the real function used by the page. Keep its code unchanged. Use fixed time and fresh fixtures. Assert exact decisions and unchanged booking data.
+
+Return the test file, run command, and AC mapping. Flag unclear requirements. We will run the tests ourselves.
+
+Default fixture: now = 540, blocked = false, bookings = [{ start: 600, end: 660 }]. Minutes after midnight.
+
+| ID | Candidate / changed input | Expected | AC |
+| --- | --- | --- | --- |
+| T01 | 660–720 (touching after) | true | AC4 |
+| T02 | 540–570 (starts now) | false | AC1 |
+| T03 | 720–720 (zero duration) | false | AC1 |
+| T04 | 750–720 (reversed) | false | AC1 |
+| T05 | 1380–1441 (past day end) | false | AC1 |
+| T06 | 720–840 (120 minutes) | true | AC2 |
+| T07 | 720–841 (121 minutes) | false | AC2 |
+| T08 | 570–600 (touching before) | true | AC4 |
+| T09 | 630–690 (partial overlap) | false | AC4 |
+| T10 | 570–690 (contains booking) | false | AC4 |
+| T11 | 615–645 (inside booking) | false | AC4 |
+| T12 | 600–660 (identical interval) | false | AC4 |
+| T13 | 660–720, blocked = true | false | AC3 |
+| T14 | 630–690, bookings = [] | true | AC4 |
+| AC5 | an Available request — bookings after the call equal bookings before | true, data unchanged | AC5 |
+| X1 | 1380–1440 (ends exactly at 24:00) | true | AC1 |
+| X2 | 660–720 with bookings [{600–660}, {720–780}] | true | AC4 |
+
+AC1: Accept a candidate interval only when 0 ≤ start < end ≤ 1440 and start is after the supplied current time.
+AC2: Reject a booking longer than 120 minutes.
+AC3: Reject the request when the selected room is blocked.
+AC4: Reject any interval that overlaps an existing booking; touching endpoints are allowed.
+AC5: Show a clear Available / Unavailable decision without changing the existing booking data.
+AC6: The page remains usable at desktop and narrow/mobile width and gives understandable validation feedback.
+
+src/booking.ts (used by src/App.tsx):
+export function canBook({ start, end, now, blocked, bookings }: BookingRequest): boolean {
+  if (start < 0 || end > DAY_END) return false;
+  if (start >= end) return false;
+  if (start <= now) return false;
+  if (end - start > MAX_DURATION) return false;
+  if (blocked) return false;
+  if (bookings.some((b) => start < b.end && end > b.start)) return false;
+  return true;
+}
 ```
 
 **The assistant's answer: run command, AC mapping and any unclear requirements it flagged,
 pasted unedited.** Its test file goes to `suites/first/` and is not pasted here:
 
 ```text
-(paste here)
+Test file: src/booking.test.ts (beside src/booking.ts) — saved unedited as suites/first/booking.test.ts.
+
+Run command (inside the project folder):
+  npm install -D vitest
+  npx vitest run
+
+AC mapping:
+- AC1 — T02 (start = now), T03 (zero length), T04 (reversed), T05 (end 1441), X1 (end exactly 1440)
+- AC2 — T06 (exactly 120 min, allowed), T07 (121 min, rejected)
+- AC3 — T13 (blocked room, otherwise free slot)
+- AC4 — T01, T08 (touching after / before), T09–T12 (overlaps, as one it.each table), T14 (no bookings), X2 (touching two bookings)
+- AC5 — the AC5 test: an Available call (660–720), then bookings compared with a structuredClone taken before
+- AC6 — not covered: it is about the page (layout, validation messages), so it needs a manual / UI check, not a unit test of canBook.
+
+Unclear requirements (flagged, not decided by the tests):
+1. Existing bookings that are themselves invalid (e.g. { start: 700, end: 650 }) — no AC says how canBook should treat them.
+2. now outside 0–1440, or non-integer minutes — the function does not validate them; the ACs assume valid numbers.
+3. AC1 says start must be "after" the current time; the table (T02) reads this as strictly after, which I followed.
+4. "Longer than 120 minutes" is read as end - start > 120, so exactly 120 is allowed (T06).
 ```
 
-The first suite was saved to `suites/first/` **before** I changed anything in it: yes / no
+The first suite was saved to `suites/first/` **before** I changed anything in it: yes
 
 ---
 
