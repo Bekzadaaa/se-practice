@@ -17,7 +17,7 @@
 | Assistant (tool) | Claude (Anthropic) — a fresh chat session per exchange (no file access; it saw only what I pasted) |
 | Assistant model | claude-opus-5-5 (Claude Opus 5.5) |
 | Starting point | week-08 |
-| Baseline commit | 33401ef |
+| Baseline commit | 1e923e5 |
 | Language (ts or js) | ts |
 | Vitest version | 3.2.7 |
 | Where I ran the tests | a Linux terminal (Node 22) in a Claude cloud workspace, same as a Codespace |
@@ -419,9 +419,9 @@ $ npx vitest run
 
 | Measure | Original | Final | How I obtained it |
 | --- | --- | --- | --- |
-| Automated tests passed / total | 21/21 | 34/34 | the `Tests` line of the runs in 1.1 (baseline commit 33401ef) and 6.3 (final) |
-| Duplicated logic locations removed | 0 | 4 | counted in 5.3, one row per location I can point at in the diff from 33401ef |
-| Code structure: modules and their responsibilities | 13 files in `app/src`: rules in `booking.ts` and `utils/availability.ts`, data in `data/rooms.ts` + `types.ts`, the page picked the room and the blocked flag | 14 files: `rooms.ts` (data), `filter.ts` (F1, F2), `booking.ts` (all rules), `utils/time.ts`, App + 5 components (UI only) | `git ls-tree -r --name-only 33401ef sis-04/app/src` against `git ls-files src` at the end, read against 5.1 |
+| Automated tests passed / total | 21/21 | 34/34 | the `Tests` line of the runs in 1.1 (baseline commit 1e923e5) and 6.3 (final) |
+| Duplicated logic locations removed | 0 | 4 | counted in 5.3, one row per location I can point at in the diff from 1e923e5 |
+| Code structure: modules and their responsibilities | 13 files in `app/src`: rules in `booking.ts` and `utils/availability.ts`, data in `data/rooms.ts` + `types.ts`, the page picked the room and the blocked flag | 14 files: `rooms.ts` (data), `filter.ts` (F1, F2), `booking.ts` (all rules), `utils/time.ts`, App + 5 components (UI only) | `git ls-tree -r --name-only 1e923e5 sis-04/app/src` against `git ls-files src` at the end, read against 5.1 |
 | Remaining limitation | — | `explainRoom` still restates AC1–AC4 next to `canBook` (kept because `canBook` must stay unchanged); and nothing renders the page in a test, so F4/F5 on the page are shown only by the screenshots | the AC1 AC4 grid test (both functions over 192 requests) and the five screenshots; there is no rendered UI test in `app/` |
 
 ## 8. AI evidence appendix
