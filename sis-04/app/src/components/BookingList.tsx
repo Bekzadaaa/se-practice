@@ -1,4 +1,4 @@
-import { Room } from '../types';
+import { Room } from '../rooms';
 import { formatTime } from '../utils/time';
 
 interface Props {
@@ -10,20 +10,19 @@ export default function BookingList({ room }: Props) {
     <section className="card">
       <h2>{room.name}</h2>
       <p className="muted">
-        {room.building} · {room.capacity} seats
+        {room.capacity} seats · {room.equipment.join(', ')}
       </p>
-      {room.blocked && <p className="badge badge-blocked">Blocked — {room.blockedReason}</p>}
+      {room.blocked && <p className="badge badge-blocked">Blocked{room.blockedReason ? ` — ${room.blockedReason}` : ''}</p>}
       <h3>Existing bookings today</h3>
       {room.bookings.length === 0 ? (
         <p className="muted">No bookings yet.</p>
       ) : (
         <ul className="bookings">
           {room.bookings.map((b) => (
-            <li key={b.id}>
+            <li key={`${b.start}-${b.end}`}>
               <span className="time">
                 {formatTime(b.start)}–{formatTime(b.end)}
               </span>
-              <span>{b.title}</span>
             </li>
           ))}
         </ul>

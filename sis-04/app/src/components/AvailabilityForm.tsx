@@ -4,18 +4,17 @@ interface Props {
   now: string;
   start: string;
   end: string;
-  blocked: boolean;
   endOfDay: boolean;
   onEndOfDayChange: (v: boolean) => void;
-  onBlockedChange: (v: boolean) => void;
   onNowChange: (v: string) => void;
   onStartChange: (v: string) => void;
   onEndChange: (v: string) => void;
+  disabled: boolean;
   onSubmit: () => void;
 }
 
 export default function AvailabilityForm(props: Props) {
-  const { now, start, end, blocked, endOfDay, onEndOfDayChange, onBlockedChange, onNowChange, onStartChange, onEndChange, onSubmit } = props;
+  const { now, start, end, endOfDay, disabled, onEndOfDayChange, onNowChange, onStartChange, onEndChange, onSubmit } = props;
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -49,11 +48,9 @@ export default function AvailabilityForm(props: Props) {
         <input id="endOfDay" type="checkbox" checked={endOfDay} onChange={(e) => onEndOfDayChange(e.target.checked)} />
         Ends at 24:00 (end of day)
       </label>
-      <label className="checkbox" htmlFor="blocked">
-        <input id="blocked" type="checkbox" checked={blocked} onChange={(e) => onBlockedChange(e.target.checked)} />
-        Room is blocked
-      </label>
-      <button type="submit">Check availability</button>
+      <button type="submit" disabled={disabled}>
+        Check availability
+      </button>
     </form>
   );
 }
