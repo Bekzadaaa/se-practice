@@ -5,6 +5,7 @@ import AvailabilityForm from './components/AvailabilityForm';
 import ResultPanel from './components/ResultPanel';
 import { ROOMS } from './data/rooms';
 import { checkAvailability, DAY_END } from './utils/availability';
+import { canBook } from './booking';
 import { currentTimeString, toMinutes } from './utils/time';
 import { AvailabilityResult } from './types';
 
@@ -22,8 +23,12 @@ export default function App() {
   function handleCheck() {
     // The sample data is never modified: the blocked flag is applied to a copy of the room.
     const roomToCheck = { ...room, blocked };
-    const endMinutes = endOfDay ? DAY_END : toMinutes(end);
-    setResult(checkAvailability(roomToCheck, toMinutes(start), endMinutes, toMinutes(now)));
+    const s = toMinutes(start);
+    const e = endOfDay ? DAY_END : toMinutes(end);
+    const n = toMinutes(now);
+    // The decision comes from canBook (src/booking.ts); checkAvailability only explains it.
+    const available = canBook({ start: s, end: e, now: n, blocked, bookings: room.bookings });
+    setResult({ available, ...checkAvailability(roomToCheck, s, e, n) });
   }
 
   // Any edit makes the last decision outdated, so it is cleared until the user checks again.

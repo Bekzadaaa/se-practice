@@ -1,11 +1,16 @@
-import { AvailabilityResult, Room } from '../types';
+import { Booking, Room } from '../types';
+import { DAY_END, MAX_DURATION } from '../booking';
 
-export const MAX_DURATION = 120;
-export const DAY_END = 1440;
+export { DAY_END, MAX_DURATION };
 
-// Decides whether [start, end) can be booked in the room.
-// Intervals include the start and exclude the end.
-export function checkAvailability(room: Room, start: number, end: number, now: number): AvailabilityResult {
+export interface AvailabilityFeedback {
+  reasons: string[];
+  conflicts: Booking[];
+}
+
+// Explains WHY a request is unavailable, for the result panel.
+// The decision itself is canBook() in src/booking.ts; the page calls it.
+export function checkAvailability(room: Room, start: number, end: number, now: number): AvailabilityFeedback {
   const reasons: string[] = [];
 
   if (start < 0 || end > DAY_END) {
@@ -29,5 +34,5 @@ export function checkAvailability(room: Room, start: number, end: number, now: n
     reasons.push('The requested time overlaps an existing booking.');
   }
 
-  return { available: reasons.length === 0, reasons, conflicts };
+  return { reasons, conflicts };
 }

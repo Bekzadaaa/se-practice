@@ -29,15 +29,24 @@ grader find your answers by them. You can add rows to any table, but never remov
 
 | | |
 | --- | --- |
-| File and function (or "inside the page component") | |
-| Its inputs | |
-| What it returned | |
-| How the page used it | |
+| File and function (or "inside the page component") | `src/utils/availability.ts`, `checkAvailability(room, start, end, now)` |
+| Its inputs | the whole `Room` object (with `blocked` and `bookings`), and `start`, `end`, `now` in minutes |
+| What it returned | an object `{ available, reasons, conflicts }` — `available` was `reasons.length === 0` |
+| How the page used it | `App.tsx` `handleCheck()` converted HH:MM to minutes, called it with a copy of the room (blocked flag from the checkbox) and stored the whole object as the result shown by `ResultPanel` |
 
 **What I changed to extract `canBook`.** Say which file it now lives in, what you moved, and why
 the behaviour did not change. Also say which file of the page now calls it. 40 words or more.
 
 <!-- Write below this line -->
+
+The decision now lives in `src/booking.ts` as `canBook({ start, end, now, blocked, bookings })`,
+which returns only true or false. I moved the six conditions out of `checkAvailability` in the same
+order and with the same comparisons (`start < 0 || end > 1440`, `start >= end`, `start <= now`,
+`end - start > 120`, `blocked`, and `start < b.end && end > b.start` for each booking), so every input
+gives the same decision as before. `MAX_DURATION` and `DAY_END` moved with it. `checkAvailability`
+stays in `src/utils/availability.ts` but now returns only the reasons and conflicts for the messages.
+`src/App.tsx` imports `canBook` from `./booking` and calls it in `handleCheck()` for the Available /
+Unavailable decision. I reran T1–T9 in the browser after the change: still 9/9, same messages.
 
 ---
 
